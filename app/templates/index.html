@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+        <script src="{{url_for('static', filename='js/scrollbuttons.js')}}"></script>
+        <title>Загрузка...</title>
+    </head>
+    <body>
+        <form>
+            <div id="tests_panel">
+                <div class="left button">
+                    <i class="icon fi fi-rr-angle-left"></i>
+                </div>
+                <div class="right button">
+                    <i class="icon fi fi-rr-angle-right"></i>
+                </div>
+                <div class="test">
+                    <div class="name">
+                        <span title="Паспортная часть">Паспортная часть</span>
+                    </div>
+                    <div class="progress">
+                        <span>0%</span>
+                    </div>
+                    <div class="progressbar"></div>
+                </div>
+                <div class="test">
+                    <div class="name">
+                        <span title="Вопросы">Вопросы</span>
+                    </div>
+                    <div class="progress">
+                        <span>0%</span>
+                    </div>
+                    <div class="progressbar"></div>
+                </div>
+                <div class="test">
+                    <div class="name">
+                        <span title="Рекомендации">Рекомендации</span>
+                    </div>
+                    <div class="progress">
+                        <span>0%</span>
+                    </div>
+                    <div class="progressbar"></div>
+                </div>
+                <div class="test">
+                    <div class="name">
+                        <span title="Оценка риска">Оценка риска</span>
+                    </div>
+                    <div class="progress">
+                        <span>0%</span>
+                    </div>
+                    <div class="progressbar"></div>
+                </div>
+                <div class="test">
+                    <div class="name">
+                        <span title="DEBQ">DEBQ</span>
+                    </div>
+                    <div class="progress">
+                        <span>0%</span>
+                    </div>
+                    <div class="progressbar"></div>
+                </div>
+                <div class="test">
+                    <div class="name">
+                        <span title="DSM-V">DSM-V</span>
+                    </div>
+                    <div class="progress">
+                        <span>0%</span>
+                    </div>
+                    <div class="progressbar"></div>
+                </div>
+                <div class="test">
+                    <div class="name">
+                        <span title="Вопросы об информированности">Вопросы об информированности</span>
+                    </div>
+                    <div class="progress">
+                        <span>0%</span>
+                    </div>
+                    <div class="progressbar"></div>
+                </div>
+            </div>
+            <div id="content">
+                <section>
+                    <h1 id="question">Продукты с высоким или низким гликемическим индексом рекомендованы к употреблению лицам, имеющим сахарный диабет?</h1>
+                    <div id="answer_options" class="radio">
+                        <input id="radio1" type="radio" name="group">
+                        <label for="radio1">Высоким</label>
+                        <input id="radio2" type="radio" name="group">
+                        <label for="radio2">Низким</label>
+                    </div>
+                    <div id="buttons">
+                        <div id="next">
+                            <span>Далее</span>
+                            <i class="icon fi fi-rr-arrow-small-right"></i>
+                        </div>
+                    </div>
+                </section>
+                <fieldset>
+                    <legend id="term">Гликемический индекс</legend>
+                    <span>Гликемический индекс отражает содержание углеводов в продуктах по шкале от 0 до 100. Он демонстрирует, как быстро тот или иной продукт после его потребления вызывает повышение уровня сахара в крови. Продукты с низким гликемическим индексом предпочтительны к употреблению у пациентов с нарушениями углеводного обмена.</span>
+                </fieldset>
+            </div>
+        </form>
+    </body>
+</html>
