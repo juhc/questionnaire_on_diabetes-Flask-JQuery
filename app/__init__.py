@@ -11,16 +11,9 @@ def create_app():
     app.config.from_object(Config)
 
     from .models import (
-        PassportChoice,
-        PassportQuestion,
-        Questions,
-        QuestionsAnswer,
-        Recomendations,
-        Risks,
-        DEBQ,
-        DSM_V_Answers,
-        DSM_V_Questions,
-        KnowledgeQuestions,
+        Question,
+        Answer,
+        Group
     )
 
     db.init_app(app)

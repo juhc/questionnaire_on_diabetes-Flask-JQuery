@@ -1,17 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-from .models import (
-    PassportQuestion,
-    PassportChoice,
-    QuestionsAnswer,
-    Questions,
-    DSM_V_Questions,
-    DSM_V_Answers,
-    DEBQ,
-    Risks,
-    Recomendations,
-    KnowledgeAnswers,
-    KnowledgeQuestions,
-)
+from .models import Question, Answer, Group
 from . import db
 
 
@@ -20,50 +8,36 @@ home = Blueprint("home", __name__)
 
 @home.route("/")
 def index():
-    return render_template('index.html')
+    tests = [group.name for group in Group.query.all()]
+    return render_template("index.html", tests=tests)
 
 
-@home.route("/get-questions")
-def get_questions():
-    topic = request.args.get("topic")
-    if topic == "passport":
-        questions = get_passport_topic()
-        return jsonify(questions)
+@home.route("/get-question")
+def get_question_by_id():
+    question_id = int(request.args.get("id"))
+    group_id = int(request.args.get("group"))
+    response = dict.fromkeys(("text", "type", "notion", "answers"))
 
-    elif topic == "questions":
-        questions = get_questions_topic()
-        return jsonify(questions)
-
-    return jsonify({"test": 123})
-
-
-def get_passport_topic():
-    questions = PassportQuestion.query.all()
-    questions_answers = dict()
-
-    for question in questions:
-        questions_answers[question.id] = dict()
-        questions_answers[question.id]["question"] = question.question
-        answers = PassportChoice.query.filter_by(question=question.id).all()
-        questions_answers[question.id]["answers"] = [
-            answer.answer for answer in answers
+    if question_id and group_id:
+        questions = Question.query.filter_by(group_id=group_id).all()
+        question = questions[question_id - 1]
+        response["text"] = question.text
+        response["notion"] = question.notion
+        response["type"] = question.type
+        answers = Answer.query.filter_by(question_id=question.id).all()
+        response["answers"] = [
+            {"text": answer.text, "type": answer.type} for answer in answers
         ]
+    return jsonify(response)
 
-    return questions_answers
 
+@home.route("/get-questions-count")
+def get_questions_count():
+    group_id = request.args.get("group")
+    response = {"count": None}
 
-def get_questions_topic():
-    questions = Questions.query.all()
-    questions_answers = dict()
-    sex = 'male'
-    for question in questions:
-        questions_answers[question.id] = dict()
-        questions_answers[question.id]["question"] = question.question
-        answers = QuestionsAnswer.query.filter(
-            QuestionsAnswer.question==question.id, QuestionsAnswer.sex.in_(("all",sex))
-        ).all()
-        questions_answers[question.id]["answers"] = [
-            {answer.choice: answer.cost} for answer in answers
-        ]
-    
-    return questions_answers
+    if group_id:
+        count = len(Question.query.filter_by(group_id=group_id).all())
+        response["count"] = count if count else None
+
+    return jsonify(response)
