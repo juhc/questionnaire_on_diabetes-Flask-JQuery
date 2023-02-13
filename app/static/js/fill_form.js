@@ -15,6 +15,9 @@ async function FillForm(data) {
 
     if (data.type == "textbox") {
         for (let i = 0; i < data.answers.length; i++) {
+            if (data.answers[i].text != null) {
+                $("#answer_options").append(`<label for=\"${data.answers[i].type}${i + 1}\">${data.answers[i].text}</label>`)
+            }
             $("#answer_options").append(`<input id=\"${data.answers[i].type}${i + 1}\" type=\"${data.answers[i].type}\" name=\"group\">`);
         }
     }

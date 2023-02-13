@@ -17,6 +17,17 @@ $(async function() {
             let progress = step * (current.question - 1);
             let intProgress = Math.round(progress);
             let offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
+
+            $(window).resize(function() {
+                if (offset < testsWidth - panelWidth) {
+                    offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
+                }
+                if (offset > testsWidth - panelWidth) {
+                    offset = testsWidth - panelWidth;
+                }
+
+                $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
+            });
         
             if ($("#tests_panel").scrollLeft() != offset) {
                 $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
