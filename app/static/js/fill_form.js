@@ -3,7 +3,9 @@ let tests = document.getElementsByClassName("test");
 let questions = { count: 0 };
 
 
-async function FillForm(data) {
+async function FillForm(question) {
+    data = JSON.parse(localStorage.getItem('questionsArray'))[question];
+
     $("#answer_options").removeClass("radio");
     $("#answer_options").removeClass("checkbox");
     $("#answer_options").removeClass("textbox");
@@ -33,11 +35,12 @@ async function FillForm(data) {
     }
 }
 
-function SetData(data, text, type, notion, answers) {
-    data.text = text;
-    data.type = type;
-    data.notion = notion;
-    data.answers = answers;
+function SetData(data,text, type, notion, answers) {
+    data = {'text':text, 'type':type, 'notion':notion, 'answers':answers}
+}
+
+function SetQuestionsArray(data){
+    localStorage.setItem('questionsArray', JSON.stringify(data))
 }
 
 function GetCurrent() {
@@ -67,8 +70,8 @@ async function GetDataFromUrl(url) {
     return data;
 }
 
-function GetLinkToGetQuestion(group, id) {
-    return `/get-question?group=${group}&id=${id}`
+function GetLinkToGetQuestions(group) {
+    return `/get-question?group=${group}`
 }
 
 function SetQuestionsCount(questions, count) {

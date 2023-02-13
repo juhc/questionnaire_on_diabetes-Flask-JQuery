@@ -463,6 +463,7 @@ input[type="checkbox"]:checked+label::before {
     justify-content: center;
     border-radius: 10px;
     border: 1px solid #330000;
+    background-color: #FFEECC;
     padding: 10px;
     box-sizing: border-box;
     column-gap: 5px;

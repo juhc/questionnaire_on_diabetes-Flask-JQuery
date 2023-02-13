@@ -14,20 +14,25 @@ def index():
 
 @home.route("/get-question")
 def get_question_by_id():
-    question_id = int(request.args.get("id"))
     group_id = int(request.args.get("group"))
-    response = dict.fromkeys(("text", "type", "notion", "answers"))
+    response = {}
 
-    if question_id and group_id:
+    if group_id:
         questions = Question.query.filter_by(group_id=group_id).all()
-        question = questions[question_id - 1]
-        response["text"] = question.text
-        response["notion"] = question.notion
-        response["type"] = question.type
-        answers = Answer.query.filter_by(question_id=question.id).all()
-        response["answers"] = [
-            {"text": answer.text, "type": answer.type} for answer in answers
-        ]
+
+        for q in questions:
+            question = dict.fromkeys(("text", "type", "notion", "answers"))
+            question["text"] = q.text
+            question["notion"] = q.notion
+            question["type"] = q.type
+
+            answers = Answer.query.filter_by(question_id=q.id).all()
+            question["answers"] = [
+                {"text": answer.text, "type": answer.type} for answer in answers
+            ]
+
+            response[len(response)+1] = question
+
     return jsonify(response)
 
 
