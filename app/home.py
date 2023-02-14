@@ -46,3 +46,13 @@ def get_questions_count():
         response["count"] = count if count else None
 
     return jsonify(response)
+
+
+# import json
+# @home.route('/change')
+# def change():
+#     question = Question.query.get(65)
+#     n = {'termin':'Гликемический индекс', 'notion':'Гликемический индекс отражает содержание углеводов в продуктах по шкале от 0 до 100. Он демонстрирует, как быстро тот или иной продукт после его потребления вызывает повышение уровня сахара в крови. Продукты с низким гликемическим индексом предпочтительны к употреблению у пациентов с нарушениями углеводного обмена.'}
+#     question.notion = json.dumps(n)
+#     db.session.commit()
+#     return 'change'

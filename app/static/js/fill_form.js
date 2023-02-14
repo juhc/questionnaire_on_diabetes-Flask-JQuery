@@ -1,37 +1,51 @@
 const linkGetQuestionsCount = '/get-questions-count?group=';
 let tests = document.getElementsByClassName("test");
 let questions = { count: 0 };
+let inputId = null;
+var expire = new Date();
+expire.setMonth(expire.getMonth()+1);
 
+async function FillForm(data, question) {
 
-async function FillForm(question) {
-    data = JSON.parse(localStorage.getItem('questionsArray'))[question];
+    inputId = null;
+    let questionData = data[question];
+    console.log(data)
 
     $("#answer_options").removeClass("radio");
     $("#answer_options").removeClass("checkbox");
     $("#answer_options").removeClass("textbox");
     $("#answer_options").children().remove();
 
-    $("#question").html(data.text);
+    $("#question").html(questionData.text);
 
-    $("#answer_options").addClass(data.type);
+    $("#answer_options").addClass(questionData.type);
 
-    if (data.type == "textbox") {
-        for (let i = 0; i < data.answers.length; i++) {
-            if (data.answers[i].text != null) {
-                $("#answer_options").append(`<label for=\"${data.answers[i].type}${i + 1}\">${data.answers[i].text}</label>`)
+    if (questionData.type == "textbox") {
+        for (let i = 0; i < questionData.answers.length; i++) {
+            if (questionData.answers[i].text != null) {
+                $("#answer_options").append(`<label for=\"${questionData.answers[i].type}${i + 1}\">${questionData.answers[i].text}</label>`)
             }
-            $("#answer_options").append(`<input id=\"${data.answers[i].type}${i + 1}\" type=\"${data.answers[i].type}\" name=\"group\">`);
+            $("#answer_options").append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\">`);
         }
     }
     else {
-        for (let i = 0; i < data.answers.length; i++) {
-            $("#answer_options").append(`<input id=\"${data.type}${i + 1}\" type=\"${data.type}\" name=\"group\">`);
-            $("#answer_options").append(`<label for=\"${data.type}${i + 1}\">${data.answers[i].text}${data.answers[i].type != null ? `<input id=\"${data.answers[i].type}${i + 1}\" type=\"${data.answers[i].type}\" name=\"group\">` : ""}</label>`)
+        for (let i = 0; i < questionData.answers.length; i++) {
+            $("#answer_options").append(`<input id=\"${questionData.type}${i + 1}\" type=\"${questionData.type}\" name=\"group\">`);
+            if (questionData.answers[i].type != null) {
+                $("#answer_options").append(`<label id=\"with_input\" for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
+                
+inputId = i;
+            }
+            else {
+                $("#answer_options").append(`<label for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
+            }
         }
     }
     
-    if (data.notion != null) {
-        $("#content").add("<fieldset><legend id=\"term\"></legend><span></span></fieldset>");
+    if (questionData.notion != null) {
+        termin = JSON.parse(questionData.notion)['termin']
+        notion = JSON.parse(questionData.notion)['notion']
+        $("#content").append(`<fieldset><legend id=\"term\">${termin}</legend><span>${notion}</span></fieldset>`);
     }
 }
 
@@ -39,8 +53,8 @@ function SetData(data,text, type, notion, answers) {
     data = {'text':text, 'type':type, 'notion':notion, 'answers':answers}
 }
 
-function SetQuestionsArray(data){
-    localStorage.setItem('questionsArray', JSON.stringify(data))
+function SetQuestionsArray(data, response){
+    data.data = response;
 }
 
 function GetCurrent() {

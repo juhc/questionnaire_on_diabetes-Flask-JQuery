@@ -431,17 +431,24 @@ input[type="checkbox"]:checked+label::before {
     border-radius: 5px;
 }
 
-.textbox input, #answer_options input[type="text"], #answer_options input[type="number"] {
+#answer_options input[type="text"], #answer_options input[type="number"] {
     border: 0;
     border-bottom: 1px solid #330000;
     background-color: transparent;
     padding: 5px 10px;
     box-sizing: border-box;
     font-family: "Nunito", sans-serif;
-    max-width: 300px;
     width: 100%;
     color: #330000;
     outline: none;
+}
+
+#answer_options input[type="text"] {
+    max-width: 300px;
+}
+
+#answer_options input[type="number"] {
+    max-width: 100px;
 }
 
 #buttons {
