@@ -158,6 +158,10 @@ html {
     font-family: "Nunito", sans-serif;
     color: #330000;
     display: flex;
+    user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
 }
 
 body {
@@ -280,10 +284,6 @@ form {
     white-space: break-spaces;
     text-overflow: ellipsis;
     overflow: hidden;
-    user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
     z-index: 1;
 }
 
@@ -365,10 +365,6 @@ form {
     flex-direction: row;
     align-items: center;
     cursor: pointer;
-    user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
     column-gap: 10px;
 }
 
@@ -475,10 +471,6 @@ input[type="checkbox"]:checked+label::before {
     box-sizing: border-box;
     column-gap: 5px;
     cursor: pointer;
-    user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
     transition: 300ms;
 }
 
