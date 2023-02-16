@@ -1,13 +1,10 @@
 const linkGetQuestionsCount = '/get-questions-count?group=';
 let tests = document.getElementsByClassName("test");
 let questions = { count: 0 };
-let inputId = null;
 var expire = new Date();
 expire.setMonth(expire.getMonth()+1);
 
-async function FillForm(data, question) {
-
-    inputId = null;
+function FillForm(data, question) {
     let questionData = data[question];
     console.log(data)
 
@@ -33,8 +30,6 @@ async function FillForm(data, question) {
             $("#answer_options").append(`<input id=\"${questionData.type}${i + 1}\" type=\"${questionData.type}\" name=\"group\">`);
             if (questionData.answers[i].type != null) {
                 $("#answer_options").append(`<label id=\"with_input\" for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
-                
-inputId = i;
             }
             else {
                 $("#answer_options").append(`<label for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
@@ -91,4 +86,3 @@ function GetLinkToGetQuestions(group) {
 function SetQuestionsCount(questions, count) {
     questions.count = count;
 }
-
