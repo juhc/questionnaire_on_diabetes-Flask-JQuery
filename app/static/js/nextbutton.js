@@ -50,31 +50,77 @@ $(function () {
         $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
     });
 
-    $(document).click(async function (event) {
+    $(window).click(async function (event) {
         if (event.target.tagName == "INPUT") {
             if (event.target.className == "with_input") {
                 $("#buttons").children().remove();
                 $("label.with_input").children().remove();
-                $("label.with_input").append(`<input type=\"${data.data[current.question].answers[inputId].type}\" name=\"group\">`)
+                $("label.with_input").append(`<input type=\"${data.data[current.question].answers[inputId].type}\" name=\"group\">`);
+
+                $("input[type=\"number\"]").focus(function(ev) {
+                    $(ev.target).keydown(function(e) {
+                        if (e.key == "Backspace" || e.key == "Delete") {
+                            $("#buttons").children().remove();
+                        }
+                    });
+    
+                    $(ev.target).keyup(function() {
+                        $("#buttons").children().remove();
+                        
+                        if ($(ev.target).val()) {
+                            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
+                        }
+                    });
+                });
+            
+                $("input[type=\"text\"]").focus(function(ev) {
+                    $(ev.target).keydown(function(e) {
+                        if (e.key == "Backspace" || e.key == "Delete") {
+                            $("#buttons").children().remove();
+                        }
+                    });
+    
+                    $(ev.target).keyup(function() {
+                        $("#buttons").children().remove();
+                        
+                        if ($(ev.target).val()) {
+                            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
+                        }
+                    });
+                });
             }
             else if (($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") && $(event.target).parent().hasClass("with_input")) {
-                $(event.target).keyup(function () {
+                $(event.target).keydown(function(e) {
+                    if (e.key == "Backspace" || e.key == "Delete") {
+                        $("#buttons").children().remove();
+                    }
+                });
+
+                $(event.target).keyup(function() {
                     $("#buttons").children().remove();
+                    
                     if ($(event.target).val()) {
                         $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
                     }
-                })
+                });
             }
             else {
                 $("label.with_input").children().remove();
 
                 if ($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") {
+                    $(event.target).keydown(function(e) {
+                        if (e.key == "Backspace" || e.key == "Delete") {
+                            $("#buttons").children().remove();
+                        }
+                    });
+                    
                     $(event.target).keyup(function () {
                         $("#buttons").children().remove();
+                        
                         if ($(event.target).val()) {
                             $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
                         }
-                    })
+                    });
                 }
                 else if ($("input:checked").length) {
                     $("#buttons").children().remove();
@@ -83,19 +129,20 @@ $(function () {
             }
         }
 
-        else if (event.target.id == "next" || $("#next").has(event.target).length) {
+        else if ($("#buttons").children().length && (event.target.id == "next" || $("#next").has(event.target).length)) {
             $("#buttons").children().remove();
 
             if (!isCompleted) {
                 let cookieAnswers = GetDataFromCookie(current.test);
-                let cur_q = current.question;
                 let temp = null;
                 let input = $("input:checked");
+                cur_q = current.question
+                
                 if (input.length) {
                     let answers = [];
 
                     for (let i = 0; i < input.length; i++) {
-                        answers.push($(input[i]).parent().children("label").text());
+                        answers.push($(input[i]).parent().attr("class").substr(5))
                     }
 
                     if (cookieAnswers) {
@@ -115,6 +162,8 @@ $(function () {
                     temp[cur_q] = [input]
                     document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`
                 }
+
+                $("#answer_options").children().remove();
 
                 if ($("#tests_panel").scrollLeft() != offset) {
                     $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
@@ -175,6 +224,11 @@ $(function () {
 
                 FillForm(data.data, current.question);
             }
+        }
+
+        if ($("input[type=\"number\"]").val()) {
+            $("#buttons").children().remove();
+            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
         }
     });
 })

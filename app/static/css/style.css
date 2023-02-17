@@ -41,7 +41,7 @@
         font-size: 14px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
 }
@@ -76,7 +76,7 @@
         font-size: 14px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
 }
@@ -111,7 +111,7 @@
         font-size: 14px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
 }
@@ -146,7 +146,7 @@
         font-size: 12px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 14px;
     }
 }
@@ -459,7 +459,7 @@ input[type="checkbox"]:checked+label::before {
     row-gap: 10px;
 }
 
-#next {
+#buttons div {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -474,11 +474,11 @@ input[type="checkbox"]:checked+label::before {
     transition: 300ms;
 }
 
-#next:hover {
+#buttons div:hover {
     background-color: #FFBB88;
 }
 
-#next:active {
+#buttons div:active {
     background-color: #DD9966;
 }
 

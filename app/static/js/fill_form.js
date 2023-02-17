@@ -49,11 +49,12 @@ function FillForm(data, question) {
         $("#content").append(`<fieldset><legend id=\"term\">${termin}</legend><span>${notion}</span></fieldset>`);
     }
 
-    $("input").change(function () {
-        $("#buttons").children().remove();
-        if ($(this).val()) {
-            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
-        }
+    $("input[type=\"number\"]").focus(function(event) {
+        $(event.target).trigger("click");
+    });
+
+    $("input[type=\"text\"]").focus(function(event) {
+        $(event.target).trigger("click");
     });
 }
 
