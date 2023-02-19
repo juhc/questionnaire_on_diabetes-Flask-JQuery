@@ -56,6 +56,8 @@ function FillForm(data, question) {
     $("input[type=\"text\"]").focus(function(event) {
         $(event.target).trigger("click");
     });
+
+    CalculateWidth();
 }
 
 function GetDataFromCookie(key) {

@@ -8,6 +8,12 @@ class Question(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     type = db.Column(db.String, nullable=False, default='radio')
 
+class Recomendations(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.String, nullable=False)
+    text = db.Column(db.String, nullable=False)
+    extra = db.Column(db.String)
+
 
 class Answer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

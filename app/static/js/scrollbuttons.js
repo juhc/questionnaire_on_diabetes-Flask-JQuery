@@ -6,15 +6,10 @@ let display = {
 }
 
 $(function() {
-    testsWidth = GetTestsWidth(tests);
-    panelWidth = Math.round($("#tests_panel").width());
-
-    ShowButtons(testsWidth, panelWidth, display);
+    CalculateWidth();
 
     $(window).resize(function() {
-        testsWidth = GetTestsWidth(tests);
-        panelWidth = Math.round($("#tests_panel").width());
-        ShowButtons(testsWidth, panelWidth, display);
+        CalculateWidth();
     });
 
     $("#tests_panel").scroll(function() {
@@ -55,6 +50,12 @@ $(function() {
         $("#tests_panel").animate({ scrollLeft: testsWidth - panelWidth }, { duration: "fast", easing: "linear", queue: false });
     });
 });
+
+function CalculateWidth() {
+    testsWidth = GetTestsWidth(tests);
+    panelWidth = Math.round($("#tests_panel").width());
+    ShowButtons(testsWidth, panelWidth, display);
+}
 
 function GetTestsWidth(tests) {
     let testsWidth = 0;

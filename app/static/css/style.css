@@ -158,10 +158,12 @@ html {
     font-family: "Nunito", sans-serif;
     color: #330000;
     display: flex;
+    /*
     user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
+    */
 }
 
 body {
@@ -202,7 +204,7 @@ form {
     scrollbar-width: none;
 }
 
-#tests_panel::-webkit-scrollbar {
+#tests::-webkit-scrollbar {
     height: 0;
     width: 0;
 }
@@ -431,7 +433,7 @@ input[type="checkbox"]:checked+label::before {
     border: 0;
     border-bottom: 1px solid #330000;
     background-color: transparent;
-    padding: 5px 10px;
+    padding: 0 10px;
     box-sizing: border-box;
     font-family: "Nunito", sans-serif;
     width: 100%;
@@ -460,10 +462,10 @@ input[type="checkbox"]:checked+label::before {
 }
 
 #buttons div {
-    display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    opacity: 0;
     border-radius: 10px;
     border: 1px solid #330000;
     background-color: #FFEECC;
@@ -471,7 +473,6 @@ input[type="checkbox"]:checked+label::before {
     box-sizing: border-box;
     column-gap: 5px;
     cursor: pointer;
-    transition: 300ms;
 }
 
 #buttons div:hover {

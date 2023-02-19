@@ -53,84 +53,90 @@ $(function () {
     $(window).click(async function (event) {
         if (event.target.tagName == "INPUT") {
             if (event.target.className == "with_input") {
-                $("#buttons").children().remove();
-                $("label.with_input").children().remove();
-                $("label.with_input").append(`<input type=\"${data.data[current.question].answers[inputId].type}\" name=\"group\">`);
+                if (!$("label.with_input").children().length) {
+                    HideNextButton();
+                    $("label.with_input").append($(`<input type=\"${data.data[current.question].answers[inputId].type}\" name=\"group\">`).css({ opacity: 0 }));
+                    $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
+                }
 
                 $("input[type=\"number\"]").focus(function(ev) {
                     $(ev.target).keydown(function(e) {
-                        if (e.key == "Backspace" || e.key == "Delete") {
-                            $("#buttons").children().remove();
-                        }
+                        OnDeleteKeyPressed(e);
+                    });
+
+                    $(ev.target).change(function() {
+                        ShowOrHideNextButton(ev);
                     });
     
                     $(ev.target).keyup(function() {
-                        $("#buttons").children().remove();
-                        
-                        if ($(ev.target).val()) {
-                            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
-                        }
+                        ShowOrHideNextButton(ev);
                     });
+
+                    ShowOrHideNextButton(ev);
                 });
             
                 $("input[type=\"text\"]").focus(function(ev) {
                     $(ev.target).keydown(function(e) {
-                        if (e.key == "Backspace" || e.key == "Delete") {
-                            $("#buttons").children().remove();
-                        }
+                        OnDeleteKeyPressed(e);
+                    });
+
+                    $(ev.target).change(function() {
+                        ShowOrHideNextButton(ev);
                     });
     
                     $(ev.target).keyup(function() {
-                        $("#buttons").children().remove();
-                        
-                        if ($(ev.target).val()) {
-                            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
-                        }
+                        ShowOrHideNextButton(ev);
                     });
+
+                    ShowOrHideNextButton(ev);
                 });
             }
             else if (($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") && $(event.target).parent().hasClass("with_input")) {
                 $(event.target).keydown(function(e) {
-                    if (e.key == "Backspace" || e.key == "Delete") {
-                        $("#buttons").children().remove();
-                    }
+                    OnDeleteKeyPressed(e);
+                });
+
+                $(event.target).change(function() {
+                    ShowOrHideNextButton(event);
                 });
 
                 $(event.target).keyup(function() {
-                    $("#buttons").children().remove();
-                    
-                    if ($(event.target).val()) {
-                        $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
-                    }
+                    ShowOrHideNextButton(event);
                 });
+
+                ShowOrHideNextButton(event);
             }
             else {
-                $("label.with_input").children().remove();
+                $("label.with_input > input").animate({ opacity: 0 }, { duration: "fast", easing: "linear", done: function() {
+                    $("label.with_input").children().remove();
+                }, queue: false });
 
                 if ($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") {
                     $(event.target).keydown(function(e) {
-                        if (e.key == "Backspace" || e.key == "Delete") {
-                            $("#buttons").children().remove();
-                        }
+                        OnDeleteKeyPressed(e);
+                    });
+
+                    $(event.target).change(function() {
+                        ShowOrHideNextButton(event);
                     });
                     
                     $(event.target).keyup(function () {
-                        $("#buttons").children().remove();
-                        
-                        if ($(event.target).val()) {
-                            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
-                        }
+                        ShowOrHideNextButton(event);
                     });
+
+                    ShowOrHideNextButton(event);
                 }
                 else if ($("input:checked").length) {
-                    $("#buttons").children().remove();
-                    $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
+                    ShowNextButton();
+                }
+                else {
+                    HideNextButton();
                 }
             }
         }
 
-        else if ($("#buttons").children().length && (event.target.id == "next" || $("#next").has(event.target).length)) {
-            $("#buttons").children().remove();
+        else if ($("#buttons").children("div").hasClass("next") && (event.target.className == "next" || $(".next").has(event.target).length)) {
+            HideNextButton();
 
             if (!isCompleted) {
                 let cookieAnswers = GetDataFromCookie(current.test);
@@ -142,7 +148,12 @@ $(function () {
                     let answers = [];
 
                     for (let i = 0; i < input.length; i++) {
-                        answers.push($(input[i]).parent().attr("class").substr(5))
+                        if ($(input[i]).hasClass("with_input")) {
+                            answers.push($(input[i]).parent().children("label").children("input").val());
+                        }
+                        else {
+                            answers.push($(input[i]).parent().attr("class").substr(5));
+                        }
                     }
 
                     if (cookieAnswers) {
@@ -157,17 +168,13 @@ $(function () {
                     }
                 }
                 else {
-                    let input = $("input").val()
+                    let input = $("input").val();
                     temp = JSON.parse(cookieAnswers);
-                    temp[cur_q] = [input]
+                    temp[cur_q] = [input];
                     document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`
                 }
 
                 $("#answer_options").children().remove();
-
-                if ($("#tests_panel").scrollLeft() != offset) {
-                    $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-                }
 
                 let progress = step * (current.question);
                 let intProgress = Math.round(progress);
@@ -223,12 +230,66 @@ $(function () {
                 }
 
                 FillForm(data.data, current.question);
+
+                if (offset < testsWidth - panelWidth) {
+                    offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
+                }
+                if (offset > testsWidth - panelWidth) {
+                    offset = testsWidth - panelWidth;
+                }
+
+                if ($("#tests_panel").scrollLeft() != offset) {
+                    $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
+                }
             }
         }
 
-        if ($("input[type=\"number\"]").val()) {
-            $("#buttons").children().remove();
-            $("#buttons").append("<div id=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
+        else {
+            if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val())) {
+                HideNextButton();
+            }
         }
     });
 })
+
+function OnDeleteKeyPressed(event) {
+    if (event.key == "Backspace" || event.key == "Delete") {
+        $("#buttons").children("div").removeClass("next");
+    }
+}
+
+function ShowOrHideNextButton(event) {
+    if ($(event.target).val()) {
+        ShowNextButton();
+    }
+    else {
+        HideNextButton();
+    }
+}
+
+function ShowNextButton() {
+    if ($("#buttons").children().length && !$("#buttons").children("div").hasClass("next")) {
+        $("#buttons").children("div").addClass("next");
+    }
+    else if (!$("#buttons").children().length) {
+        AnimateShowNextButton();
+    }
+}
+
+function HideNextButton() {
+    $("#buttons").children("div").removeClass("next");
+    $("#buttons > div").animate({ opacity: 0 }, { duration: "fast", easing: "linear", start: function() {
+        $("#buttons > div").css({ transition: "none" });
+    }, done: function() {
+        $("#buttons").children().remove();
+    }, queue: false });
+}
+
+function AnimateShowNextButton() {
+    $("#buttons").append("<div class=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
+    $(".next").animate({ opacity: 1 }, { duration: "fast", easing: "linear", start: function() {
+        $(".next").css({ display: "flex" });
+    }, done: function() {
+        $(".next").css({ transition: "300ms" });
+    }, queue: false });
+}

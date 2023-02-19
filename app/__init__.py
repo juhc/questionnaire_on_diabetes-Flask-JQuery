@@ -13,7 +13,8 @@ def create_app():
     from .models import (
         Question,
         Answer,
-        Group
+        Group,
+        Recomendations
     )
 
     db.init_app(app)
