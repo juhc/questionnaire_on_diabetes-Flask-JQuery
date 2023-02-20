@@ -11,7 +11,6 @@ function FillForm(data, question) {
     $("#answer_options").removeClass("radio");
     $("#answer_options").removeClass("checkbox");
     $("#answer_options").removeClass("textbox");
-    $("#answer_options").children().remove();
 
     $("#question").html(questionData.text);
 
@@ -75,7 +74,7 @@ function SetData(data, text, type, notion, answers) {
 }
 
 function SetQuestionsArray(data, response) {
-    data.data = response;
+    data.data = response.data;
 }
 
 function GetCurrent() {

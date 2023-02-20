@@ -329,6 +329,9 @@ form {
     justify-content: center;
     flex: 1 0 auto;
     box-sizing: border-box;
+}
+
+#content > * {
     opacity: 0;
 }
 

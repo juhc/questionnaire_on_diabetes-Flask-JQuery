@@ -33,7 +33,7 @@ $(async function () {
             $(".current").children(".progress").children("span").html(`${intProgress}%`);
             $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
-            $("#content").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
+            $("#content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
         }
     }
 });
@@ -145,7 +145,7 @@ $(function () {
 
         else if ($("#buttons").children("div").hasClass("next") && (event.target.className == "next" || $(".next").has(event.target).length)) {
             HideNextButton();
-            $("#content").animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
+            $("#content").children().animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
 
             if (!isCompleted) {
                 let cookieAnswers = GetDataFromCookie(current.test);
@@ -202,10 +202,11 @@ $(function () {
                     }
                     else {
                         // Убрать!!!
+                        
                         if (current.test == 2) {
                             current.test = 4;
                         }
-
+                        
                         await GetDataFromUrl(GetLinkToGetQuestions(current.test + 1)).then(response => {
                             SetQuestionsArray(data, response)
                         });
@@ -251,7 +252,7 @@ $(function () {
                     $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
                 }
 
-                $("#content").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
+                $("#content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
             }
         }
 

@@ -15,34 +15,34 @@ def index():
 
 @home.route("/get-question")
 def get_question_by_id():
-    group_id = request.args.get("group")
-    group = Group.query.get(group_id)
-    if group.name == 'Рекомендации':
-        return jsonify(recomendation_data())
-    if group.name == 'Оценка риска':
-        return jsonify(risks_data())
-    
-    sex = 'all'
-    if request.cookies.get('1'):
-        if json.loads(request.cookies["1"])["1"] == ['1']:
-            sex = 'male'
-        elif json.loads(request.cookies["1"])["1"] == ['2']:
-            sex = 'female'
     response = {}
+    group_id = request.args.get("group")
+    sex = "all"
+
+    if request.cookies.get("1"):
+        if json.loads(request.cookies["1"])["1"] == ["1"]:
+            sex = "male"
+        elif json.loads(request.cookies["1"])["1"] == ["2"]:
+            sex = "female"
 
     if group_id:
+        group = Group.query.get(group_id)
+
         if group.type == "question":
             response = get_question_data(group_id, sex)
 
         if group.type == "recomendation":
-            return
+            if group.name == "Рекомендации":
+                response = recomendation_data(sex)
+            if group.name == "Оценка риска":
+                response = risks_data()
 
     return jsonify(response)
 
 
 @home.route("/test")
 def test():
-    return jsonify(risks_data())
+    return jsonify(recomendation_data())
 
 
 @home.route("/get-questions-count")
@@ -67,58 +67,65 @@ def get_question_data(group_id, sex) -> dict:
         question["type"] = q.type
 
         answers = Answer.query.filter(
-            (Answer.question_id == q.id)&((Answer.sex == sex)|(Answer.sex == 'all'))).all()
+            (Answer.question_id == q.id) & ((Answer.sex == sex) | (Answer.sex == "all"))
+        ).all()
         question["answers"] = [
             {"text": answer.text, "type": answer.type} for answer in answers
         ]
 
         response[len(response) + 1] = question
+    response = {"group-type": "question", "data": response}
     return response
 
 
-def recomendation_data() -> dict:
+def recomendation_data(sex) -> dict:
     response = {}
 
+    group_questions_id = Group.query.filter(
+        (Group.name == "Вопросы") & (Group.type == "question")
+    ).first()
     answers = dict(request.cookies)
     for key in answers:
         answers[key] = json.loads(answers[key])
-    
-    questions = Question.query.filter_by(group_id=2).all()
-    if len(questions) != len(answers['2']):
+
+    questions = Question.query.filter_by(group_id=group_questions_id.id).all()
+    answers = answers[str(group_questions_id.id)]
+    if len(questions) != len(answers):
         return {}
 
-    if answers.get('1').get('1') == ['1']:
-        sex = 'male'
-    elif answers.get('1').get('1') == ['2']:
-        sex = 'female'
-    else:
-        sex = 'all'
-
-    answers = answers['2']
     recomendations = []
-    if answers['2'] == ['1'] and answers['3'] == ['1']:
-        recomendations.append(Recomendations.query.filter_by(value='Нормальный вес').first())
-    elif answers['2'] == ['2'] or answers['3'] == ['2']:
-        recomendations.append(Recomendations.query.filter_by(value='Избыточный вес').first())
-    elif answers['2'] == ['3'] or answers['3'] == ['3']:
-        recomendations.append(Recomendations.query.filter_by(value='Ожирение').first())
-    
+    if answers["2"] == ["1"] and answers["3"] == ["1"]:
+        recomendations.append(
+            Recomendations.query.filter_by(value="Нормальный вес").first()
+        )
+    elif answers["2"] == ["2"] or answers["3"] == ["2"]:
+        recomendations.append(
+            Recomendations.query.filter_by(value="Избыточный вес").first()
+        )
+    elif answers["2"] == ["3"] or answers["3"] == ["3"]:
+        recomendations.append(Recomendations.query.filter_by(value="Ожирение").first())
+
     for index, question in enumerate(questions[3:], start=4):
         value = int(answers[str(index)][0])
-        answer = Answer.query.filter_by(question_id=question.id).all()[value-1]
-        rec = Recomendations.query.filter((Recomendations.extra==question.id) & (Recomendations.value==answer.text)).first()
+        answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
+        rec = Recomendations.query.filter(
+            (Recomendations.extra == question.id)
+            & (Recomendations.value == answer.text)
+        ).first()
         if rec:
             recomendations.append(rec)
-    
-    response = {key:value.text for key, value in enumerate(recomendations, start=1)}
-    
+
+    response = {key: {'title':'Рекомендовано','text':value.text} for key, value in enumerate(recomendations, start=1)}
+    response = {'group-type':'recomendation', 'data':response}
+
     return response
+
 
 def get_points_on_questions() -> int:
     cookie = dict(request.cookies)
     for key in cookie:
         cookie[key] = json.loads(cookie[key])
-    cookie = cookie['2']
+    cookie = cookie["2"]
     questions = Question.query.filter_by(group_id=2).all()
 
     if len(questions) != len(cookie):
@@ -127,29 +134,39 @@ def get_points_on_questions() -> int:
     points = 0
     for index, question in enumerate(questions, start=1):
         value = int(cookie[str(index)][0])
-        answer = Answer.query.filter_by(question_id=question.id).all()[value-1]
+        answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
         points += answer.point
-    
+
     return points
+
 
 def risks_data() -> dict:
     points = get_points_on_questions()
     print(points)
-    
+
     if points < 7:
-        risk_level = 'Низкий'
+        risk_level = "Низкий"
     elif 7 <= points <= 11:
-        risk_level = 'Слегка повышен'
+        risk_level = "Слегка повышен"
     elif 12 <= points <= 14:
-        risk_level = 'Умеренный'
+        risk_level = "Умеренный"
     elif 15 <= points <= 20:
-        risk_level = 'Высокий'
+        risk_level = "Высокий"
     else:
-        risk_level = 'Очень высокий'  
-    
-    
+        risk_level = "Очень высокий"
+
     risk = Recomendations.query.filter_by(value=risk_level).first()
-    
-    response = {'risk_level':risk.value, 'text':risk.text, 'extra':risk.extra}  
+
+    response = {
+        "group-type": "recomendation",
+        "data": {
+            "risk_level": {"title": "Уровень риска СД 2 типа", "text": risk.value},
+            "text": {"title": "Комментарий", "text": risk.text},
+            "extra": {
+                "title": "Вероятность развития СД 2 типа в течение ближайших 10 лет",
+                "text": risk.extra,
+            },
+        },
+    }
 
     return response
