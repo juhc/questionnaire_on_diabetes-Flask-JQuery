@@ -158,12 +158,12 @@ html {
     font-family: "Nunito", sans-serif;
     color: #330000;
     display: flex;
-    /*
+    
     user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
-    */
+    
 }
 
 body {
@@ -329,6 +329,7 @@ form {
     justify-content: center;
     flex: 1 0 auto;
     box-sizing: border-box;
+    opacity: 0;
 }
 
 #content section {
@@ -462,6 +463,7 @@ input[type="checkbox"]:checked+label::before {
 }
 
 #buttons div {
+    display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;

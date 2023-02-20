@@ -32,6 +32,8 @@ $(async function () {
             $(tests[current.test - 1]).addClass("current");
             $(".current").children(".progress").children("span").html(`${intProgress}%`);
             $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+
+            $("#content").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
         }
     }
 });
@@ -50,6 +52,12 @@ $(function () {
         $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
     });
 
+    $(window).keypress(function(event) {
+        if ($("#buttons").children("div").hasClass("next") && event.key == "Enter") {
+            $(".next").trigger("click");
+        }
+    })
+
     $(window).click(async function (event) {
         if (event.target.tagName == "INPUT") {
             if (event.target.className == "with_input") {
@@ -61,7 +69,7 @@ $(function () {
 
                 $("input[type=\"number\"]").focus(function(ev) {
                     $(ev.target).keydown(function(e) {
-                        OnDeleteKeyPressed(e);
+                        OnDeleting(e);
                     });
 
                     $(ev.target).change(function() {
@@ -77,7 +85,7 @@ $(function () {
             
                 $("input[type=\"text\"]").focus(function(ev) {
                     $(ev.target).keydown(function(e) {
-                        OnDeleteKeyPressed(e);
+                        OnDeleting(e);
                     });
 
                     $(ev.target).change(function() {
@@ -93,7 +101,7 @@ $(function () {
             }
             else if (($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") && $(event.target).parent().hasClass("with_input")) {
                 $(event.target).keydown(function(e) {
-                    OnDeleteKeyPressed(e);
+                    OnDeleting(e);
                 });
 
                 $(event.target).change(function() {
@@ -113,7 +121,7 @@ $(function () {
 
                 if ($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") {
                     $(event.target).keydown(function(e) {
-                        OnDeleteKeyPressed(e);
+                        OnDeleting(e);
                     });
 
                     $(event.target).change(function() {
@@ -137,6 +145,7 @@ $(function () {
 
         else if ($("#buttons").children("div").hasClass("next") && (event.target.className == "next" || $(".next").has(event.target).length)) {
             HideNextButton();
+            $("#content").animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
 
             if (!isCompleted) {
                 let cookieAnswers = GetDataFromCookie(current.test);
@@ -241,6 +250,8 @@ $(function () {
                 if ($("#tests_panel").scrollLeft() != offset) {
                     $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
                 }
+
+                $("#content").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
             }
         }
 
@@ -252,7 +263,7 @@ $(function () {
     });
 })
 
-function OnDeleteKeyPressed(event) {
+function OnDeleting(event) {
     if (event.key == "Backspace" || event.key == "Delete") {
         $("#buttons").children("div").removeClass("next");
     }
@@ -272,7 +283,7 @@ function ShowNextButton() {
         $("#buttons").children("div").addClass("next");
     }
     else if (!$("#buttons").children().length) {
-        AnimateShowNextButton();
+        AnimateNextButton();
     }
 }
 
@@ -285,11 +296,9 @@ function HideNextButton() {
     }, queue: false });
 }
 
-function AnimateShowNextButton() {
+function AnimateNextButton() {
     $("#buttons").append("<div class=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
-    $(".next").animate({ opacity: 1 }, { duration: "fast", easing: "linear", start: function() {
-        $(".next").css({ display: "flex" });
-    }, done: function() {
+    $(".next").animate({ opacity: 1 }, { duration: "fast", easing: "linear", done: function() {
         $(".next").css({ transition: "300ms" });
     }, queue: false });
 }

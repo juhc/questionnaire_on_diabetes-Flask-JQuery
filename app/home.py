@@ -16,6 +16,12 @@ def index():
 @home.route("/get-question")
 def get_question_by_id():
     group_id = request.args.get("group")
+    group = Group.query.get(group_id)
+    if group.name == 'Рекомендации':
+        return jsonify(recomendation_data())
+    if group.name == 'Оценка риска':
+        return jsonify(risks_data())
+    
     sex = 'all'
     if request.cookies.get('1'):
         if json.loads(request.cookies["1"])["1"] == ['1']:
@@ -23,7 +29,6 @@ def get_question_by_id():
         elif json.loads(request.cookies["1"])["1"] == ['2']:
             sex = 'female'
     response = {}
-    group = Group.query.get(group_id)
 
     if group_id:
         if group.type == "question":
@@ -140,8 +145,7 @@ def risks_data() -> dict:
     elif 15 <= points <= 20:
         risk_level = 'Высокий'
     else:
-        risk_level = 'Очень высокий'
-    
+        risk_level = 'Очень высокий'  
     
     
     risk = Recomendations.query.filter_by(value=risk_level).first()
