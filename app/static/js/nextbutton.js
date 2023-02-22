@@ -1,5 +1,5 @@
 let current = null;
-let data = { 'data': null }
+let object = { 'data': null, 'group-type': null }
 let isCompleted = null;
 let offset = null;
 let step = null;
@@ -11,12 +11,12 @@ $(async function () {
         current = GetCurrent();
 
         await GetDataFromUrl(GetLinkToGetQuestions(current.test)).then(response => {
-            SetQuestionsArray(data, response)
+            SetQuestionsArray(object, response)
         });
 
-        FillForm(data.data, current.question);
+        FillForm(object["data"], object["group-type"], current.question);
 
-        questionsCount = Object.keys(data.data).length;
+        questionsCount = Object.keys(object["data"]).length;
 
         if (questionsCount) {
             step = 100 / questionsCount;
@@ -33,7 +33,7 @@ $(async function () {
             $(".current").children(".progress").children("span").html(`${intProgress}%`);
             $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
-            $("#content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
+            ShowContent();
         }
     }
 });
@@ -63,7 +63,7 @@ $(function () {
             if (event.target.className == "with_input") {
                 if (!$("label.with_input").children().length) {
                     HideNextButton();
-                    $("label.with_input").append($(`<input type=\"${data.data[current.question].answers[inputId].type}\" name=\"group\">`).css({ opacity: 0 }));
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\">`).css({ opacity: 0 }));
                     $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
@@ -144,46 +144,51 @@ $(function () {
         }
 
         else if ($("#buttons").children("div").hasClass("next") && (event.target.className == "next" || $(".next").has(event.target).length)) {
-            HideNextButton();
-            $("#content").children().animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
+            if (object["group-type"] == "question") {
+                HideNextButton();
+            }
+
+            HideContent();
 
             if (!isCompleted) {
-                let cookieAnswers = GetDataFromCookie(current.test);
-                let temp = null;
-                let input = $("input:checked");
-                cur_q = current.question
-                
-                if (input.length) {
-                    let answers = [];
+                if (object["group-type"] == "question") {
+                    let cookieAnswers = GetDataFromCookie(current.test);
+                    let temp = null;
+                    let input = $("input:checked");
+                    let cur_q = current.question
+                    
+                    if (input.length) {
+                        let answers = [];
 
-                    for (let i = 0; i < input.length; i++) {
-                        if ($(input[i]).hasClass("with_input")) {
-                            answers.push($(input[i]).parent().children("label").children("input").val());
+                        for (let i = 0; i < input.length; i++) {
+                            if ($(input[i]).hasClass("with_input")) {
+                                answers.push($(input[i]).parent().children("label").children("input").val());
+                            }
+                            else {
+                                answers.push($(input[i]).parent().attr("class").substr(5));
+                            }
+                        }
+
+                        if (cookieAnswers) {
+                            temp = JSON.parse(cookieAnswers);
+                            temp[cur_q] = answers;
+                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
                         }
                         else {
-                            answers.push($(input[i]).parent().attr("class").substr(5));
+                            temp = {};
+                            temp[cur_q] = answers;
+                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
                         }
                     }
-
-                    if (cookieAnswers) {
-                        temp = JSON.parse(cookieAnswers);
-                        temp[cur_q] = answers;
-                        document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
-                    }
                     else {
-                        temp = {};
-                        temp[cur_q] = answers;
-                        document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
+                        let input = $("input").val();
+                        temp = JSON.parse(cookieAnswers);
+                        temp[cur_q] = [input];
+                        document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`
                     }
                 }
-                else {
-                    let input = $("input").val();
-                    temp = JSON.parse(cookieAnswers);
-                    temp[cur_q] = [input];
-                    document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`
-                }
 
-                $("#answer_options").children().remove();
+                $("section").children().remove();
 
                 let progress = step * (current.question);
                 let intProgress = Math.round(progress);
@@ -202,16 +207,18 @@ $(function () {
                     }
                     else {
                         // Убрать!!!
-                        
+                        /*
                         if (current.test == 2) {
                             current.test = 4;
                         }
-                        
+                        */
                         await GetDataFromUrl(GetLinkToGetQuestions(current.test + 1)).then(response => {
-                            SetQuestionsArray(data, response)
+                            SetQuestionsArray(object, response)
                         });
 
-                        questionsCount = Object.keys(data.data).length;
+                        questionsCount = Object.keys(object["data"]).length;
+
+                        console.log(questionsCount)
 
                         if (questionsCount) {
                             step = 100 / questionsCount;
@@ -239,7 +246,7 @@ $(function () {
                     localStorage.setItem("current", JSON.stringify(current));
                 }
 
-                FillForm(data.data, current.question);
+                FillForm(object["data"], object["group-type"], current.question);
 
                 if (offset < testsWidth - panelWidth) {
                     offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
@@ -252,7 +259,7 @@ $(function () {
                     $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
                 }
 
-                $("#content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
+                ShowContent();
             }
         }
 
@@ -302,4 +309,12 @@ function AnimateNextButton() {
     $(".next").animate({ opacity: 1 }, { duration: "fast", easing: "linear", done: function() {
         $(".next").css({ transition: "300ms" });
     }, queue: false });
+}
+
+function ShowContent() {
+    $("#content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
+}
+
+function HideContent() {
+    $("#content").children().animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
 }

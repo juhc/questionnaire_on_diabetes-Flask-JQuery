@@ -28,7 +28,7 @@
 
     #content section {
         width: 200%;
-        row-gap: 40px;
+        row-gap: 30px;
     }
 
     #question {
@@ -63,7 +63,7 @@
 
     #content section {
         width: 200%;
-        row-gap: 40px;
+        row-gap: 30px;
     }
 
     #question {
@@ -340,14 +340,15 @@ form {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 200px;
 }
 
-#question {
+#question, .recomendation {
     margin: 0;
     text-align: center;
 }
 
-#answer_options {
+#answer_options, .recomendation_text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;

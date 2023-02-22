@@ -115,8 +115,11 @@ def recomendation_data(sex) -> dict:
         if rec:
             recomendations.append(rec)
 
-    response = {key: {'title':'Рекомендовано','text':value.text} for key, value in enumerate(recomendations, start=1)}
-    response = {'group-type':'recomendation', 'data':response}
+    response = {
+        key: {"title": "Рекомендовано", "text": value.text}
+        for key, value in enumerate(recomendations, start=1)
+    }
+    response = {"group-type": "recomendation", "data": response}
 
     return response
 
@@ -160,12 +163,14 @@ def risks_data() -> dict:
     response = {
         "group-type": "recomendation",
         "data": {
-            "risk_level": {"title": "Уровень риска СД 2 типа", "text": risk.value},
-            "text": {"title": "Комментарий", "text": risk.text},
-            "extra": {
-                "title": "Вероятность развития СД 2 типа в течение ближайших 10 лет",
-                "text": risk.extra,
-            },
+            "1": {
+                "1": {"title": "Уровень риска СД 2 типа", "text": risk.value},
+                "2": {"title": "Комментарий", "text": risk.text},
+                "3": {
+                    "title": "Вероятность развития СД 2 типа в течение ближайших 10 лет",
+                    "text": risk.extra,
+                },
+            }
         },
     }
 
