@@ -75,7 +75,7 @@ def get_question_data(group_id, sex) -> dict:
 
 def recomendation_data(sex) -> dict:
     response = {}
-    recomendations = get_question_recomendations()
+    recomendations = get_question_recomendations(sex)
     recomendations.append(get_debq_recomendations())
     recomendations.append(get_dsmv_recomendations())
 
@@ -150,7 +150,7 @@ def get_dsmv_recomendations():
         return Recomendations.query.filter_by(value='Неизвестное переедание').first()
 
 
-def get_question_recomendations():
+def get_question_recomendations(sex):
     questions, answers = get_questions_and_answers_by_group('Вопросы')
 
     recomendations = []
@@ -164,6 +164,11 @@ def get_question_recomendations():
         )
     elif answers["2"] == ["3"] or answers["3"] == ["3"]:
         recomendations.append(Recomendations.query.filter_by(value="Ожирение").first())
+
+    imt = 0
+    waist = 0
+
+    
 
     for index, question in enumerate(questions[3:], start=4):
         value = int(answers[str(index)][0])

@@ -23,7 +23,7 @@ function fillForm(data, type, question) {
                 if (questionData.answers[i].text != null) {
                     $(`.group${i + 1}`).append(`<label for=\"${questionData.answers[i].type}${i + 1}\">${questionData.answers[i].text}</label>`)
                 }
-                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\" ${questionData.answers[i].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"120\""}>`);
+                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\" ${questionData.answers[i].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"999\" minlength=\"1\" maxlength=\"3\""}>`);
             }
         }
         else {

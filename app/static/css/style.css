@@ -194,7 +194,7 @@ form {
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    overflow-x: auto;
+    overflow: auto;
     scrollbar-width: none;
 }
 
@@ -244,14 +244,6 @@ form {
     position: relative;
     z-index: 0;
     transition: 300ms;
-}
-
-.test:first-child {
-    border-radius: 20px 0 0 0;
-}
-
-.test:last-child {
-    border-radius: 0 20px 0 0;
 }
 
 .current.test {

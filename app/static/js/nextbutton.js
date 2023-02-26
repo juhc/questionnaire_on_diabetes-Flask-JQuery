@@ -60,7 +60,7 @@ $(function () {
             else if (isFinite(event.key)) {
                 let inputValue = $("input[type=\"number\"]").val();
                 
-                if (inputValue + event.key > 120 || (inputValue == "0")) {
+                if (inputValue + event.key > 999 || inputValue == "0") {
                     return false;
                 }
             }
@@ -96,7 +96,7 @@ $(function () {
             if (event.target.className == "with_input") {
                 if (!$("label.with_input").children().length) {
                     hideNextButton();
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"120\""}>`).css({ opacity: 0 }));
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"999\" minlength=\"1\" maxlength=\"3\""}>`).css({ opacity: 0 }));
                     $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
