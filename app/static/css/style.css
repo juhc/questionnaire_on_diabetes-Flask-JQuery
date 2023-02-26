@@ -28,7 +28,7 @@
 
     #content section {
         width: 200%;
-        row-gap: 40px;
+        row-gap: 30px;
     }
 
     #question {
@@ -41,7 +41,7 @@
         font-size: 14px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
 }
@@ -63,7 +63,7 @@
 
     #content section {
         width: 200%;
-        row-gap: 40px;
+        row-gap: 30px;
     }
 
     #question {
@@ -76,7 +76,7 @@
         font-size: 14px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
 }
@@ -111,7 +111,7 @@
         font-size: 14px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
 }
@@ -146,7 +146,7 @@
         font-size: 12px;
     }
 
-    #term, #answer_options label, #answer_options input, #next {
+    #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 14px;
     }
 }
@@ -198,7 +198,7 @@ form {
     scrollbar-width: none;
 }
 
-#tests_panel::-webkit-scrollbar {
+#tests::-webkit-scrollbar {
     height: 0;
     width: 0;
 }
@@ -280,10 +280,6 @@ form {
     white-space: break-spaces;
     text-overflow: ellipsis;
     overflow: hidden;
-    user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
     z-index: 1;
 }
 
@@ -329,19 +325,24 @@ form {
     box-sizing: border-box;
 }
 
+#content > * {
+    opacity: 0;
+}
+
 #content section {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 200px;
 }
 
-#question {
+#question, .recomendation {
     margin: 0;
     text-align: center;
 }
 
-#answer_options {
+#answer_options, .recomendation_text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -365,10 +366,6 @@ form {
     flex-direction: row;
     align-items: center;
     cursor: pointer;
-    user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
     column-gap: 10px;
 }
 
@@ -378,7 +375,7 @@ form {
     opacity: 0;
 }
 
-#answer_options input:not(:checked)+label::before {
+#answer_options input[type="radio"]:not(:checked)+label::before, #answer_options input[type="checkbox"]:not(:checked)+label::before {
     background-color: #FFEECC;
     content: "";
 }
@@ -431,17 +428,28 @@ input[type="checkbox"]:checked+label::before {
     border-radius: 5px;
 }
 
-.textbox input, #answer_options input[type="text"], #answer_options input[type="number"] {
+#answer_options input[type="text"], #answer_options input[type="number"] {
     border: 0;
     border-bottom: 1px solid #330000;
     background-color: transparent;
-    padding: 5px 10px;
+    padding: 0 10px;
     box-sizing: border-box;
     font-family: "Nunito", sans-serif;
-    max-width: 300px;
     width: 100%;
     color: #330000;
     outline: none;
+}
+
+#answer_options input[type="text"] {
+    max-width: 300px;
+}
+
+#answer_options input[type="number"] {
+    max-width: 100px;
+}
+
+#answer_options input:invalid {
+    outline: #CC0000 solid 3px;
 }
 
 #buttons {
@@ -456,29 +464,26 @@ input[type="checkbox"]:checked+label::before {
     row-gap: 10px;
 }
 
-#next {
+#buttons div {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    opacity: 0;
     border-radius: 10px;
     border: 1px solid #330000;
+    background-color: #FFEECC;
     padding: 10px;
     box-sizing: border-box;
     column-gap: 5px;
     cursor: pointer;
-    user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    transition: 300ms;
 }
 
-#next:hover {
+#buttons div:hover {
     background-color: #FFBB88;
 }
 
-#next:active {
+#buttons div:active {
     background-color: #DD9966;
 }
 
