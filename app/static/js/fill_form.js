@@ -5,7 +5,7 @@ var expire = new Date();
 expire.setMonth(expire.getMonth() + 1);
 let inputId = null;
 
-function FillForm(data, type, question) {
+function fillForm(data, type, question) {
     $("section").children().remove();
 
     if (type == "question") {
@@ -23,7 +23,7 @@ function FillForm(data, type, question) {
                 if (questionData.answers[i].text != null) {
                     $(`.group${i + 1}`).append(`<label for=\"${questionData.answers[i].type}${i + 1}\">${questionData.answers[i].text}</label>`)
                 }
-                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\">`);
+                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\" ${questionData.answers[i].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"120\""}>`);
             }
         }
         else {
@@ -77,13 +77,13 @@ function FillForm(data, type, question) {
             $(".recomendation_text").append(`<p>${recomendationData.text}</p>`);
         }
 
-        ShowNextButton();
+        showNextButton();
     }
 
-    CalculateWidth();
+    calculateWidth();
 }
 
-function GetDataFromCookie(key) {
+function getDataFromCookie(key) {
     keys = document.cookie.split(';');
     for (let k in keys) {
         if (keys[k].split('=')[0] == key) {
@@ -93,19 +93,17 @@ function GetDataFromCookie(key) {
     return null
 }
 
-function SetData(data, text, type, notion, answers) {
+function setData(data, text, type, notion, answers) {
     data = { 'text': text, 'type': type, 'notion': notion, 'answers': answers }
 }
 
-function SetQuestionsArray(object, response) {
+function setQuestionsArray(object, response) {
     object["data"] = response["data"];
     object["group-type"] = response["group-type"];
 }
 
-function GetCurrent() {
+function getCurrent() {
     let current = JSON.parse(localStorage.getItem("current"));
-
-    // localStorage.clear()
 
     if (current == null) {
         current = { test: 1, question: 1 };
@@ -123,21 +121,21 @@ function GetCurrent() {
     return current;
 }
 
-async function GetDataFromUrl(url) {
+async function getDataFromUrl(url) {
     let response = await fetch(url);
     let data = await response.json();
     return data;
 }
 
-function GetLinkToGetQuestions(group) {
+function getLinkToGetQuestions(group) {
     return `/get-question?group=${group}`
 }
 
-function SetQuestionsCount(questions, count) {
+function getQuestionsCount(questions, count) {
     questions.count = count;
 }
 
-function CookiesDelete() {
+function cookiesDelete() {
     var cookies = document.cookie.split(";");
     for (var i = 0; i < cookies.length; i++) {
         var cookie = cookies[i];

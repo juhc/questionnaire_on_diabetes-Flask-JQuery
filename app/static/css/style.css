@@ -158,12 +158,6 @@ html {
     font-family: "Nunito", sans-serif;
     color: #330000;
     display: flex;
-    
-    user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    
 }
 
 body {
@@ -381,7 +375,7 @@ form {
     opacity: 0;
 }
 
-#answer_options input:not(:checked)+label::before {
+#answer_options input[type="radio"]:not(:checked)+label::before, #answer_options input[type="checkbox"]:not(:checked)+label::before {
     background-color: #FFEECC;
     content: "";
 }
@@ -452,6 +446,10 @@ input[type="checkbox"]:checked+label::before {
 
 #answer_options input[type="number"] {
     max-width: 100px;
+}
+
+#answer_options input:invalid {
+    outline: #CC0000 solid 3px;
 }
 
 #buttons {

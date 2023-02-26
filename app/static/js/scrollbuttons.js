@@ -6,14 +6,14 @@ let display = {
 }
 
 $(function() {
-    CalculateWidth();
+    calculateWidth();
 
     $(window).resize(function() {
-        CalculateWidth();
+        calculateWidth();
     });
 
     $("#tests_panel").scroll(function() {
-        ShowButtons(testsWidth, panelWidth, display);
+        showButtons(testsWidth, panelWidth, display);
     });
 
     $(".left").mouseenter(function() {
@@ -51,13 +51,13 @@ $(function() {
     });
 });
 
-function CalculateWidth() {
-    testsWidth = GetTestsWidth(tests);
+function calculateWidth() {
+    testsWidth = getTestsWidth(tests);
     panelWidth = Math.round($("#tests_panel").width());
-    ShowButtons(testsWidth, panelWidth, display);
+    showButtons(testsWidth, panelWidth, display);
 }
 
-function GetTestsWidth(tests) {
+function getTestsWidth(tests) {
     let testsWidth = 0;
     for (let i = 0; i < tests.length; i++) {
         testsWidth += $(tests[i]).width() + 20;
@@ -65,7 +65,7 @@ function GetTestsWidth(tests) {
     return Math.round(testsWidth);
 }
 
-function ShowButtons(testsWidth, panelWidth, display) {
+function showButtons(testsWidth, panelWidth, display) {
     if (testsWidth != panelWidth) {
         if ($("#tests_panel").scrollLeft() > 0 && $("#tests_panel").scrollLeft() < testsWidth - panelWidth) {
             if (display.leftButton == "none" && display.rightButton == "none") {

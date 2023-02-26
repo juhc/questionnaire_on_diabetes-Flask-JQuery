@@ -8,13 +8,13 @@ let questionsCount = null;
 $(async function () {
     if (tests.length) {
         isCompleted = false;
-        current = GetCurrent();
+        current = getCurrent();
 
-        await GetDataFromUrl(GetLinkToGetQuestions(current.test)).then(response => {
-            SetQuestionsArray(object, response)
+        await getDataFromUrl(getLinkToGetQuestions(current.test)).then(response => {
+            setQuestionsArray(object, response)
         });
 
-        FillForm(object["data"], object["group-type"], current.question);
+        fillForm(object["data"], object["group-type"], current.question);
 
         questionsCount = Object.keys(object["data"]).length;
 
@@ -33,7 +33,7 @@ $(async function () {
             $(".current").children(".progress").children("span").html(`${intProgress}%`);
             $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
-            ShowContent();
+            showContent();
         }
     }
 });
@@ -52,6 +52,21 @@ $(function () {
         $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
     });
 
+    $(window).keydown(function(event) {
+        if ($("#answer_options").has("input[type=\"number\"]").length) {
+            if (!isFinite(event.key) && event.key != "Delete" && event.key != "Backspace") {
+                return false;
+            }
+            else if (isFinite(event.key)) {
+                let inputValue = $("input[type=\"number\"]").val();
+                
+                if (inputValue + event.key > 120 || (inputValue == "0")) {
+                    return false;
+                }
+            }
+        }
+    });
+
     $(window).keypress(function(event) {
         if ($("#buttons").children("div").hasClass("next") && event.key == "Enter") {
             $(".next").trigger("click");
@@ -60,59 +75,41 @@ $(function () {
 
     $(window).click(async function (event) {
         if (event.target.tagName == "INPUT") {
+            if ($("#answer_options").hasClass("checkbox")) {
+                let checked = $("input:checked");
+                if ($(event.target).parent().has("label:contains(\"Нет\")").length) {
+                    for (let i = 0; i < checked.length; i++) {
+                        if ($(checked[i]).parent().has("label:contains(\"Да\")").length) {
+                            $(checked[i]).prop("checked", false);
+                        }
+                    }
+                }
+                else if ($(event.target).parent().has("label:contains(\"Да\")").length) {
+                    for (let i = 0; i < checked.length; i++) {
+                        if ($(checked[i]).parent().has("label:contains(\"Нет\")").length) {
+                            $(checked[i]).prop("checked", false);
+                        }
+                    }
+                }
+            }
+
             if (event.target.className == "with_input") {
                 if (!$("label.with_input").children().length) {
-                    HideNextButton();
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\">`).css({ opacity: 0 }));
+                    hideNextButton();
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"120\""}>`).css({ opacity: 0 }));
                     $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
-                $("input[type=\"number\"]").focus(function(ev) {
-                    $(ev.target).keydown(function(e) {
-                        OnDeleting(e);
-                    });
-
-                    $(ev.target).change(function() {
-                        ShowOrHideNextButton(ev);
-                    });
-    
-                    $(ev.target).keyup(function() {
-                        ShowOrHideNextButton(ev);
-                    });
-
-                    ShowOrHideNextButton(ev);
+                $("input[type=\"number\"]").focus(function(e) {
+                    check(e);
                 });
             
-                $("input[type=\"text\"]").focus(function(ev) {
-                    $(ev.target).keydown(function(e) {
-                        OnDeleting(e);
-                    });
-
-                    $(ev.target).change(function() {
-                        ShowOrHideNextButton(ev);
-                    });
-    
-                    $(ev.target).keyup(function() {
-                        ShowOrHideNextButton(ev);
-                    });
-
-                    ShowOrHideNextButton(ev);
+                $("input[type=\"text\"]").focus(function(e) {
+                    check(e);
                 });
             }
             else if (($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") && $(event.target).parent().hasClass("with_input")) {
-                $(event.target).keydown(function(e) {
-                    OnDeleting(e);
-                });
-
-                $(event.target).change(function() {
-                    ShowOrHideNextButton(event);
-                });
-
-                $(event.target).keyup(function() {
-                    ShowOrHideNextButton(event);
-                });
-
-                ShowOrHideNextButton(event);
+                check(event);
             }
             else {
                 $("label.with_input > input").animate({ opacity: 0 }, { duration: "fast", easing: "linear", done: function() {
@@ -120,39 +117,27 @@ $(function () {
                 }, queue: false });
 
                 if ($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") {
-                    $(event.target).keydown(function(e) {
-                        OnDeleting(e);
-                    });
-
-                    $(event.target).change(function() {
-                        ShowOrHideNextButton(event);
-                    });
-                    
-                    $(event.target).keyup(function () {
-                        ShowOrHideNextButton(event);
-                    });
-
-                    ShowOrHideNextButton(event);
+                    check(event);
                 }
                 else if ($("input:checked").length) {
-                    ShowNextButton();
+                    showNextButton();
                 }
                 else {
-                    HideNextButton();
+                    hideNextButton();
                 }
             }
         }
 
         else if ($("#buttons").children("div").hasClass("next") && (event.target.className == "next" || $(".next").has(event.target).length)) {
             if (object["group-type"] == "question") {
-                HideNextButton();
+                hideNextButton();
             }
 
-            HideContent();
+            hideContent();
 
             if (!isCompleted) {
                 if (object["group-type"] == "question") {
-                    let cookieAnswers = GetDataFromCookie(current.test);
+                    let cookieAnswers = getDataFromCookie(current.test);
                     let temp = null;
                     let input = $("input:checked");
                     let cur_q = current.question
@@ -203,22 +188,14 @@ $(function () {
                         $("title").html("Тестирование завершено!");
                         isCompleted = true;
                         localStorage.clear();
-                        CookiesDelete()
+                        cookiesDelete()
                     }
                     else {
-                        // Убрать!!!
-                        /*
-                        if (current.test == 2) {
-                            current.test = 4;
-                        }
-                        */
-                        await GetDataFromUrl(GetLinkToGetQuestions(current.test + 1)).then(response => {
-                            SetQuestionsArray(object, response)
+                        await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
+                            setQuestionsArray(object, response)
                         });
 
                         questionsCount = Object.keys(object["data"]).length;
-
-                        console.log(questionsCount)
 
                         if (questionsCount) {
                             step = 100 / questionsCount;
@@ -246,7 +223,7 @@ $(function () {
                     localStorage.setItem("current", JSON.stringify(current));
                 }
 
-                FillForm(object["data"], object["group-type"], current.question);
+                fillForm(object["data"], object["group-type"], current.question);
 
                 if (offset < testsWidth - panelWidth) {
                     offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
@@ -259,43 +236,47 @@ $(function () {
                     $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
                 }
 
-                ShowContent();
+                showContent();
+            }
+
+            if (isCompleted && $("section").children().length) {
+                $("section").children().remove();
             }
         }
 
         else {
             if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val())) {
-                HideNextButton();
+                hideNextButton();
             }
         }
     });
 })
 
-function OnDeleting(event) {
+function onDeleting(event) {
     if (event.key == "Backspace" || event.key == "Delete") {
         $("#buttons").children("div").removeClass("next");
     }
 }
 
-function ShowOrHideNextButton(event) {
-    if ($(event.target).val()) {
-        ShowNextButton();
+function showOrHideNextButton(event) {
+    if ($(event.target).val() && $("form").valid()) {
+        showNextButton();
     }
     else {
-        HideNextButton();
+        hideNextButton();
     }
 }
 
-function ShowNextButton() {
+function showNextButton() {
     if ($("#buttons").children().length && !$("#buttons").children("div").hasClass("next")) {
         $("#buttons").children("div").addClass("next");
     }
     else if (!$("#buttons").children().length) {
-        AnimateNextButton();
+        animateNextButton();
     }
 }
 
-function HideNextButton() {
+function hideNextButton() {
     $("#buttons").children("div").removeClass("next");
     $("#buttons > div").animate({ opacity: 0 }, { duration: "fast", easing: "linear", start: function() {
         $("#buttons > div").css({ transition: "none" });
@@ -304,17 +285,33 @@ function HideNextButton() {
     }, queue: false });
 }
 
-function AnimateNextButton() {
+function animateNextButton() {
     $("#buttons").append("<div class=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
     $(".next").animate({ opacity: 1 }, { duration: "fast", easing: "linear", done: function() {
         $(".next").css({ transition: "300ms" });
     }, queue: false });
 }
 
-function ShowContent() {
+function showContent() {
     $("#content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
 }
 
-function HideContent() {
+function hideContent() {
     $("#content").children().animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
+}
+
+function check(event) {
+    $(event.target).keydown(function(e) {
+        onDeleting(e);
+    });
+
+    $(event.target).change(function() {
+        showOrHideNextButton(event);
+    });
+
+    $(event.target).keyup(function() {
+        showOrHideNextButton(event);
+    });
+
+    showOrHideNextButton(event);
 }
