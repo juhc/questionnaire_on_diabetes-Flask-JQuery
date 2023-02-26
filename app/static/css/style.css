@@ -183,6 +183,7 @@ form {
     justify-content: flex-start;
     box-sizing: border-box;
     position: relative;
+    overflow: hidden;
 }
 
 #tests_panel {
