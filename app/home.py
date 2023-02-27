@@ -34,6 +34,7 @@ def get_question_by_id():
         if group.type == "recomendation":
             if group.name == "Рекомендации":
                 response = recomendation_data(sex)
+                save_result_to_db()
             if group.name == "Оценка риска":
                 response = risks_data()
 
@@ -269,3 +270,7 @@ def risks_data() -> dict:
     }
 
     return response
+
+
+def save_result_to_db():
+    return

@@ -59,10 +59,13 @@ $(function () {
             if (!isFinite(event.key) && event.key != "Delete" && event.key != "Backspace") {
                 return false;
             }
+            else if (event.key == "." || event.key == ",") {
+                return false;
+            }
             else if (isFinite(event.key)) {
                 let inputValue = $("input[type=\"number\"]").val();
                 
-                if (inputValue + event.key > 999 || inputValue == "0") {
+                if (inputValue + event.key > 999 || inputValue + event.key < 1) {
                     return false;
                 }
             }
@@ -70,12 +73,15 @@ $(function () {
     });
 
     $(window).keypress(function(event) {
+        if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
+            return false;
+        }
         if ($("#buttons").children("div").hasClass("next") && event.key == "Enter") {
             $(".next").trigger("click");
         }
     })
 
-    $(window).bind("click touchstart",async function (event) {
+    $(window).bind("click touchstart", async function (event) {
         if (event.target.tagName == "INPUT") {
             if ($("#answer_options").hasClass("checkbox")) {
                 let checked = $("input:checked");
@@ -98,7 +104,7 @@ $(function () {
             if (event.target.className == "with_input") {
                 if (!$("label.with_input").children().length) {
                     hideNextButton();
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"999\" minlength=\"1\" maxlength=\"3\""}>`).css({ opacity: 0 }));
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"1\" max=\"999\" minlength=\"1\" maxlength=\"3\""}>`).css({ opacity: 0 }));
                     $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
