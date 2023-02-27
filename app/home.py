@@ -150,26 +150,62 @@ def get_dsmv_recomendations():
         return Recomendations.query.filter_by(value='Неизвестное переедание').first()
 
 
+def calculate_imt() -> float:
+    questions, answers = get_questions_and_answers_by_group('Паспортная часть')
+    weight = 0
+    height = 0
+    for i, v in enumerate(questions, start=1):
+        if v.text == 'Вес':
+            weight = int(answers[str(i)][0])
+        if v.text == 'Рост':
+            height = int(answers[str(i)][0])
+    
+    return weight/(height**2)
+
+
+def get_waist() -> int:
+    questions, answers = get_questions_and_answers_by_group('Паспортная часть')
+    for i, v in enumerate(questions, start=1):
+        if v.text == 'Окружность талии на уровне пупка':
+            print(answers[str(i)][0])
+            return int(answers[str(i)][0])
+
+
 def get_question_recomendations(sex):
     questions, answers = get_questions_and_answers_by_group('Вопросы')
 
     recomendations = []
-    if answers["2"] == ["1"] and answers["3"] == ["1"]:
-        recomendations.append(
+    imt = calculate_imt()
+    waist = get_waist()
+    print(waist)
+    if sex=='male':
+        if imt < 25.0 and waist < 94:
+            recomendations.append(
             Recomendations.query.filter_by(value="Нормальный вес").first()
         )
-    elif answers["2"] == ["2"] or answers["3"] == ["2"]:
-        recomendations.append(
+        elif imt >= 25.0 and imt <= 30.0 and waist >= 94 and waist <= 102:
+            recomendations.append(
             Recomendations.query.filter_by(value="Избыточный вес").first()
         )
-    elif answers["2"] == ["3"] or answers["3"] == ["3"]:
-        recomendations.append(Recomendations.query.filter_by(value="Ожирение").first())
-
-    imt = 0
-    waist = 0
-
+        elif imt > 30 and waist > 102:
+            recomendations.append(
+            Recomendations.query.filter_by(value="Ожирение").first()
+        )
     
-
+    elif sex == 'female':
+        if imt < 25.0 and waist < 80:
+            recomendations.append(
+            Recomendations.query.filter_by(value="Нормальный вес").first()
+        )
+        elif imt >= 25.0 and imt <= 30.0 and 80 <= waist <= 88:
+            recomendations.append(
+            Recomendations.query.filter_by(value="Избыточный вес").first()
+        )
+        elif imt > 30.0 and waist > 88:
+            recomendations.append(
+            Recomendations.query.filter_by(value="Ожирение").first()
+        )
+    
     for index, question in enumerate(questions[3:], start=4):
         value = int(answers[str(index)][0])
         answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
