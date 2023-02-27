@@ -165,19 +165,19 @@ $(function () {
                         if (cookieAnswers) {
                             temp = JSON.parse(cookieAnswers);
                             temp[cur_q] = answers;
-                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
+                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;`;
                         }
                         else {
                             temp = {};
                             temp[cur_q] = answers;
-                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
+                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;`;
                         }
                     }
                     else {
                         let input = $("input").val();
                         temp = JSON.parse(cookieAnswers);
                         temp[cur_q] = [input];
-                        document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`
+                        document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;`
                     }
                 }
 
