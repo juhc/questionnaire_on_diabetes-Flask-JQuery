@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, redirect
 from .models import Question, Answer, Group, Recomendations
 from . import db
 import json
@@ -167,7 +167,6 @@ def get_waist() -> int:
     questions, answers = get_questions_and_answers_by_group('Паспортная часть')
     for i, v in enumerate(questions, start=1):
         if v.text == 'Окружность талии на уровне пупка':
-            print(answers[str(i)][0])
             return int(answers[str(i)][0])
 
 
@@ -177,13 +176,13 @@ def get_question_recomendations(sex):
     recomendations = []
     imt = calculate_imt()
     waist = get_waist()
-    print(waist)
+
     if sex=='male':
-        if imt < 25.0 and waist < 94:
+        if imt < 25 and waist < 94:
             recomendations.append(
             Recomendations.query.filter_by(value="Нормальный вес").first()
         )
-        elif imt >= 25.0 and imt <= 30.0 and waist >= 94 and waist <= 102:
+        elif 25 <= imt <= 30 and 94 <= waist <= 102:
             recomendations.append(
             Recomendations.query.filter_by(value="Избыточный вес").first()
         )
@@ -193,11 +192,11 @@ def get_question_recomendations(sex):
         )
     
     elif sex == 'female':
-        if imt < 25.0 and waist < 80:
+        if imt < 25 and waist < 80:
             recomendations.append(
             Recomendations.query.filter_by(value="Нормальный вес").first()
         )
-        elif imt >= 25.0 and imt <= 30.0 and 80 <= waist <= 88:
+        elif 25 <= imt <= 30 and 80 <= waist <= 88:
             recomendations.append(
             Recomendations.query.filter_by(value="Избыточный вес").first()
         )
@@ -206,7 +205,7 @@ def get_question_recomendations(sex):
             Recomendations.query.filter_by(value="Ожирение").first()
         )
     
-    for index, question in enumerate(questions[3:], start=4):
+    for index, question in enumerate(questions, start=1):
         value = int(answers[str(index)][0])
         answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
         rec = Recomendations.query.filter(

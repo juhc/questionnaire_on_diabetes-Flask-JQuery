@@ -1,5 +1,5 @@
 const linkGetQuestionsCount = '/get-questions-count?group=';
-let tests = document.getElementsByClassName("test");
+let tests = 0;
 let questions = { count: 0 };
 var expire = new Date();
 expire.setMonth(expire.getMonth() + 1);
@@ -19,7 +19,7 @@ function fillForm(data, type, question) {
 
         if (questionData.type == "textbox") {
             for (let i = 0; i < questionData.answers.length; i++) {
-                $("#answer_options").append(`<div class=\"group group${i + 1}\"></div>`)
+                $("#answer_options").append(`<div class=\"group${i + 1}\"></div>`)
                 if (questionData.answers[i].text != null) {
                     $(`.group${i + 1}`).append(`<label for=\"${questionData.answers[i].type}${i + 1}\">${questionData.answers[i].text}</label>`)
                 }
@@ -28,7 +28,7 @@ function fillForm(data, type, question) {
         }
         else {
             for (let i = 0; i < questionData.answers.length; i++) {
-                $("#answer_options").append(`<div class=\"group group${i + 1}\"></div>`)
+                $("#answer_options").append(`<div class=\"group${i + 1}\"></div>`)
                 if (questionData.answers[i].type != null) {
                     $(`.group${i + 1}`).append(`<input id=\"${questionData.type}${i + 1}\" class=\"with_input\" type=\"${questionData.type}\" name=\"group\">`);
                     $(`.group${i + 1}`).append(`<label class=\"with_input\" for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);

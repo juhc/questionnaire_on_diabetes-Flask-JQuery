@@ -1,9 +1,9 @@
 let current = null;
 let object = { 'data': null, 'group-type': null }
 let isCompleted = null;
-let offset = null;
-let step = null;
-let questionsCount = null;
+let offset = 0;
+let step = 0;
+let questionsCount = 0;
 
 $(async function () {
     if (tests.length) {
@@ -42,6 +42,8 @@ $(function () {
     $("body").on("contextmenu", false);
 
     $(window).resize(function () {
+        calculateWidth();
+
         if (offset < testsWidth - panelWidth) {
             offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
         }
@@ -53,7 +55,7 @@ $(function () {
     });
 
     $(window).keydown(function(event) {
-        if ($("#answer_options").has("input[type=\"number\"]").length) {
+        if ($("#answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
             if (!isFinite(event.key) && event.key != "Delete" && event.key != "Backspace") {
                 return false;
             }
@@ -73,7 +75,7 @@ $(function () {
         }
     })
 
-    $(window).click(async function (event) {
+    $(window).bind("click touchstart",async function (event) {
         if (event.target.tagName == "INPUT") {
             if ($("#answer_options").hasClass("checkbox")) {
                 let checked = $("input:checked");
