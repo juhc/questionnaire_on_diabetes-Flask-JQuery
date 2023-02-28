@@ -81,7 +81,7 @@ $(function () {
         }
     })
 
-    $(window).bind("click touchstart", async function (event) {
+    $(window).bind("click tap", async function (event) {
         if (event.target.tagName == "INPUT") {
             if ($("#answer_options").hasClass("checkbox")) {
                 let checked = $("input:checked");
