@@ -38,11 +38,11 @@ $(function() {
         }
     })
 
-    $(".left").bind("click tap", function() {
+    $(".left").click(function() {
         $("#tests_panel").animate({ scrollLeft: 0 }, { duration: "fast", easing: "linear", queue: false });
     });
 
-    $(".right").bind("click tap", function() {
+    $(".right").click(function() {
         $("#tests_panel").animate({ scrollLeft: testsWidth - panelWidth }, { duration: "fast", easing: "linear", queue: false });
     });
 });

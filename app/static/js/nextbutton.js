@@ -81,7 +81,7 @@ $(function () {
         }
     })
 
-    $(window).bind("click tap", async function (event) {
+    $(window).click(async function (event) {
         if (event.target.tagName == "INPUT") {
             if ($("#answer_options").hasClass("checkbox")) {
                 let checked = $("input:checked");
@@ -104,7 +104,7 @@ $(function () {
             if (event.target.className == "with_input") {
                 if (!$("label.with_input").children().length) {
                     hideNextButton();
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\">`).css({ opacity: 0 })); /*${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}*/
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`).css({ opacity: 0 }));
                     $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
@@ -144,7 +144,43 @@ $(function () {
             hideContent();
 
             if (!isCompleted) {
-                
+                // if (object["group-type"] == "question") {
+                //     let cookieAnswers = getDataFromCookie(current.test);
+                //     let temp = null;
+                //     let input = $("input:checked");
+                //     let cur_q = current.question
+                    
+                //     if (input.length) {
+                //         let answers = [];
+
+                //         for (let i = 0; i < input.length; i++) {
+                //             if ($(input[i]).hasClass("with_input")) {
+                //                 answers.push($(input[i]).parent().children("label").children("input").val());
+                //             }
+                //             else {
+                //                 answers.push($(input[i]).parent().attr("class").substr(5));
+                //             }
+                //         }
+
+                //         if (cookieAnswers) {
+                //             temp = JSON.parse(cookieAnswers);
+                //             temp[cur_q] = answers;
+                //             document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
+                //         }
+                //         else {
+                //             temp = {};
+                //             temp[cur_q] = answers;
+                //             document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
+                //         }
+                //     }
+                //     else {
+                //         let input = $("input").val();
+                //         temp = JSON.parse(cookieAnswers);
+                //         temp[cur_q] = [input];
+                //         document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`
+                //     }
+                // }
+
                 $("section").children().remove();
 
                 let progress = step * (current.question);

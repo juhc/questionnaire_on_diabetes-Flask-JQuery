@@ -498,7 +498,6 @@ input[type="checkbox"]:checked+label::before {
     padding: 10px;
     box-sizing: border-box;
     column-gap: 5px;
-    cursor: pointer;
 }
 
 #buttons div:hover {
@@ -512,4 +511,8 @@ input[type="checkbox"]:checked+label::before {
 .icon {
     display: block;
     line-height: 0;
+}
+
+.next {
+    cursor: pointer;
 }
