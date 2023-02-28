@@ -104,7 +104,7 @@ $(function () {
             if (event.target.className == "with_input") {
                 if (!$("label.with_input").children().length) {
                     hideNextButton();
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"1\" max=\"999\" minlength=\"1\" maxlength=\"3\""}>`).css({ opacity: 0 }));
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`).css({ opacity: 0 }));
                     $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
