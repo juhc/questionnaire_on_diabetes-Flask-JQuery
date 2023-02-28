@@ -144,43 +144,7 @@ $(function () {
             hideContent();
 
             if (!isCompleted) {
-                if (object["group-type"] == "question") {
-                    let cookieAnswers = getDataFromCookie(current.test);
-                    let temp = null;
-                    let input = $("input:checked");
-                    let cur_q = current.question
-                    
-                    if (input.length) {
-                        let answers = [];
-
-                        for (let i = 0; i < input.length; i++) {
-                            if ($(input[i]).hasClass("with_input")) {
-                                answers.push($(input[i]).parent().children("label").children("input").val());
-                            }
-                            else {
-                                answers.push($(input[i]).parent().attr("class").substr(5));
-                            }
-                        }
-
-                        if (cookieAnswers) {
-                            temp = JSON.parse(cookieAnswers);
-                            temp[cur_q] = answers;
-                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;`;
-                        }
-                        else {
-                            temp = {};
-                            temp[cur_q] = answers;
-                            document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;`;
-                        }
-                    }
-                    else {
-                        let input = $("input").val();
-                        temp = JSON.parse(cookieAnswers);
-                        temp[cur_q] = [input];
-                        document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;`
-                    }
-                }
-
+                
                 $("section").children().remove();
 
                 let progress = step * (current.question);
