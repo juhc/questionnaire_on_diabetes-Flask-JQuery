@@ -54,7 +54,7 @@ $(function () {
         $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
     });
 
-    $(window).keydown(function(event) {
+    $(window).keydown(function (event) {
         if ($("#answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
             if (!isFinite(event.key) && event.key != "Delete" && event.key != "Backspace") {
                 return false;
@@ -64,7 +64,7 @@ $(function () {
             }
             else if (isFinite(event.key)) {
                 let inputValue = $("input[type=\"number\"]").val();
-                
+
                 if (inputValue + event.key > 999 || inputValue + event.key < 1) {
                     return false;
                 }
@@ -72,7 +72,7 @@ $(function () {
         }
     });
 
-    $(window).keypress(function(event) {
+    $(window).keypress(function (event) {
         if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
             return false;
         }
@@ -108,11 +108,11 @@ $(function () {
                     $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
-                $("input[type=\"number\"]").focus(function(e) {
+                $("input[type=\"number\"]").focus(function (e) {
                     check(e);
                 });
-            
-                $("input[type=\"text\"]").focus(function(e) {
+
+                $("input[type=\"text\"]").focus(function (e) {
                     check(e);
                 });
             }
@@ -120,9 +120,11 @@ $(function () {
                 check(event);
             }
             else {
-                $("label.with_input > input").animate({ opacity: 0 }, { duration: "fast", easing: "linear", done: function() {
-                    $("label.with_input").children().remove();
-                }, queue: false });
+                $("label.with_input > input").animate({ opacity: 0 }, {
+                    duration: "fast", easing: "linear", done: function () {
+                        $("label.with_input").children().remove();
+                    }, queue: false
+                });
 
                 if ($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") {
                     check(event);
@@ -144,42 +146,50 @@ $(function () {
             hideContent();
 
             if (!isCompleted) {
-                // if (object["group-type"] == "question") {
-                //     let cookieAnswers = getDataFromCookie(current.test);
-                //     let temp = null;
-                //     let input = $("input:checked");
-                //     let cur_q = current.question
-                    
-                //     if (input.length) {
-                //         let answers = [];
+                if (object["group-type"] == "question") {
+                    let answersStorage = getAnswersLocalStorage(current.test);
+                    console.log(answersStorage)
+                    let temp = null;
+                    let input = $("input:checked");
+                    let cur_q = current.question
 
-                //         for (let i = 0; i < input.length; i++) {
-                //             if ($(input[i]).hasClass("with_input")) {
-                //                 answers.push($(input[i]).parent().children("label").children("input").val());
-                //             }
-                //             else {
-                //                 answers.push($(input[i]).parent().attr("class").substr(5));
-                //             }
-                //         }
+                    if (input.length) {
+                        let answers = [];
 
-                //         if (cookieAnswers) {
-                //             temp = JSON.parse(cookieAnswers);
-                //             temp[cur_q] = answers;
-                //             document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
-                //         }
-                //         else {
-                //             temp = {};
-                //             temp[cur_q] = answers;
-                //             document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`;
-                //         }
-                //     }
-                //     else {
-                //         let input = $("input").val();
-                //         temp = JSON.parse(cookieAnswers);
-                //         temp[cur_q] = [input];
-                //         document.cookie = `${current.test}=${JSON.stringify(temp)};expires=${expire.toUTCString()};samesite=lax;secure=true;`
-                //     }
-                // }
+                        for (let i = 0; i < input.length; i++) {
+                            if ($(input[i]).hasClass("with_input")) {
+                                answers.push($(input[i]).parent().children("label").children("input").val());
+                            }
+                            else {
+                                answers.push($(input[i]).parent().attr("class").substr(5));
+                            }
+                        }
+
+                        if (answersStorage) {
+                            if (answersStorage[current.test])
+                                answersStorage[current.test][cur_q] = answers;
+                            else{
+                                answersStorage[current.test] = {}
+                                answersStorage[current.test][cur_q] = answers;
+                            }
+                            localStorage.setItem('answers', JSON.stringify(answersStorage));
+                        }
+                        else {
+                            answersStorage = {};
+                            temp = {}
+                            temp[cur_q] = answers
+                            answersStorage[current.test] = temp;
+                            localStorage.setItem('answers', JSON.stringify(answersStorage));
+                        }
+                    }
+                    else {
+                        let input = $("input").val();
+                        answersStorage[cur_q] = [input];
+                        temp = {}
+                        temp[current.test] = answersStorage
+                        localStorage.setItem('answers', JSON.stringify(temp));
+                    }
+                }
 
                 $("section").children().remove();
 
@@ -196,7 +206,6 @@ $(function () {
                         $("title").html("Тестирование завершено!");
                         isCompleted = true;
                         localStorage.clear();
-                        cookiesDelete()
                     }
                     else {
                         await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
@@ -286,18 +295,22 @@ function showNextButton() {
 
 function hideNextButton() {
     $("#buttons").children("div").removeClass("next");
-    $("#buttons > div").animate({ opacity: 0 }, { duration: "fast", easing: "linear", start: function() {
-        $("#buttons > div").css({ transition: "none" });
-    }, done: function() {
-        $("#buttons").children().remove();
-    }, queue: false });
+    $("#buttons > div").animate({ opacity: 0 }, {
+        duration: "fast", easing: "linear", start: function () {
+            $("#buttons > div").css({ transition: "none" });
+        }, done: function () {
+            $("#buttons").children().remove();
+        }, queue: false
+    });
 }
 
 function animateNextButton() {
-    $("#buttons").append("<div class=\"next\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
-    $(".next").animate({ opacity: 1 }, { duration: "fast", easing: "linear", done: function() {
-        $(".next").css({ transition: "300ms" });
-    }, queue: false });
+    $("#buttons").append("<div class=\"next\" onclick=\"\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
+    $(".next").animate({ opacity: 1 }, {
+        duration: "fast", easing: "linear", done: function () {
+            $(".next").css({ transition: "300ms" });
+        }, queue: false
+    });
 }
 
 function showContent() {
@@ -309,15 +322,15 @@ function hideContent() {
 }
 
 function check(event) {
-    $(event.target).keydown(function(e) {
+    $(event.target).keydown(function (e) {
         onDeleting(e);
     });
 
-    $(event.target).change(function() {
+    $(event.target).change(function () {
         showOrHideNextButton(event);
     });
 
-    $(event.target).keyup(function() {
+    $(event.target).keyup(function () {
         showOrHideNextButton(event);
     });
 

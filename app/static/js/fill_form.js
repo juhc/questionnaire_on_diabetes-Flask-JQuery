@@ -84,13 +84,18 @@ function fillForm(data, type, question) {
 }
 
 function getDataFromCookie(key) {
-    keys = document.cookie.split(';');
+    var keys = document.cookie.split(';');
     for (let k in keys) {
         if (keys[k].split('=')[0] == key) {
             return keys[k].split('=')[1]
         }
     }
     return null
+}
+
+function getAnswersLocalStorage(key){
+    let answers = JSON.parse(localStorage.getItem('answers'));
+    return answers
 }
 
 function setData(data, text, type, notion, answers) {
@@ -133,15 +138,4 @@ function getLinkToGetQuestions(group) {
 
 function getQuestionsCount(questions, count) {
     questions.count = count;
-}
-
-function cookiesDelete() {
-    var cookies = document.cookie.split(";");
-    for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i];
-        var eqPos = cookie.indexOf("=");
-        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-        document.cookie = name + '=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    }
 }
