@@ -10,10 +10,20 @@ $(async function () {
     if (tests.length) {
         isCompleted = false;
         current = getCurrent();
-
-        await getDataFromUrl(getLinkToGetQuestions(current.test)).then(response => {
-            setQuestionsArray(object, response)
+        
+        await getDataFromUrl(getLinkToGetQuestions(current.test)).then(response => {                            
+            SetResponse(response)
         });
+        if (obj_resp.response == null)
+            {
+                await PostDataToUrl(linkGetQuestion, localStorage.getItem('answers')).then(response => {
+                    console.log(response)
+                    SetResponse(response)
+                })
+            }
+        
+        setQuestionsArray(object, obj_resp.response);
+        
 
         fillForm(object["data"], object["group-type"], current.question);
 

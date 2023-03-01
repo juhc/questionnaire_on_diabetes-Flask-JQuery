@@ -35,8 +35,8 @@ def get_question_by_id():
         return jsonify(response)
     
     else:
-        print(json.loads(request.data))
-        response = recomendation_data()
+        answers = json.loads(request.data)
+        response = recomendation_data(answers)
         return jsonify(response)
 
 
@@ -73,9 +73,9 @@ def get_question_data(group_id, sex) -> dict:
     return response
 
 
-def recomendation_data() -> dict:
+def recomendation_data(answers) -> dict:
     response = {}
-    recomendations = get_question_recomendations()
+    recomendations = get_questions_recomendations(answers)
     # recomendations.append(get_debq_recomendations())
     # recomendations.append(get_dsmv_recomendations())
 
@@ -93,13 +93,9 @@ def get_questions_and_answers_by_group(name):
         (Group.name == name) & (Group.type == "question")
     ).first()
 
-    answers = json.loads(request.data)
-
     questions = Question.query.filter_by(group_id=group_questions_id.id).all()
-    if len(questions) != len(answers):
-        return None
     
-    return questions, answers
+    return questions
 
 
 def get_debq_recomendations():
@@ -149,8 +145,9 @@ def get_dsmv_recomendations():
         return Recomendations.query.filter_by(value='Неизвестное переедание').first()
 
 
-def calculate_imt() -> float:
-    questions, answers = get_questions_and_answers_by_group('Паспортная часть')
+def calculate_imt(answers) -> float:
+    answers = answers['1']
+    questions = get_questions_and_answers_by_group('Паспортная часть')
     
     weight = 0
     height = 0
@@ -163,24 +160,25 @@ def calculate_imt() -> float:
     return weight/(height**2)
 
 
-def get_waist() -> int:
-    questions, answers = get_questions_and_answers_by_group('Паспортная часть')
+def get_waist(answers) -> int:
+    answers = answers['1']
+    questions = get_questions_and_answers_by_group('Паспортная часть')
     for i, v in enumerate(questions, start=1):
         if v.text == 'Окружность талии на уровне пупка':
             return int(answers[str(i)][0])
 
 
-def get_question_recomendations():
-    questions, answers = get_questions_and_answers_by_group('Вопросы')
+def get_questions_recomendations(answers):
+    questions = get_questions_and_answers_by_group('Вопросы')
     if answers['1']['1'] == ['1']:
         sex = 'male'
     else:
         sex = 'female'
     
     recomendations = []
-    imt = 23
-    waist = 23
-
+    imt = calculate_imt(answers)
+    waist = get_waist(answers)
+    
     if sex=='male':
         if imt < 25 and waist < 94:
             recomendations.append(
@@ -211,7 +209,7 @@ def get_question_recomendations():
     answers = answers['2']
     for index, question in enumerate(questions, start=1):
         value = int(answers[str(index)][0])
-        print(value)
+        
         answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
         rec = Recomendations.query.filter(
             (Recomendations.extra == question.id)
