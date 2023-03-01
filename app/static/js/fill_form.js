@@ -1,5 +1,5 @@
 const linkGetRecomendations = '/get-recomendations';
-const linkGetRisks = '/get-risks';
+const linkGetRisks = '/get-risks'
 let tests = 0;
 let questions = { count: 0 };
 var expire = new Date();
@@ -77,8 +77,6 @@ function fillForm(data, type, question) {
             $(".recomendation").html(recomendationData.title);
             $(".recomendation_text").append(`<p>${recomendationData.text}</p>`);
         }
-
-        showNextButton();
     }
 
     calculateWidth();

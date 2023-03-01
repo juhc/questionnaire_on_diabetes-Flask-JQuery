@@ -49,6 +49,10 @@ $(async function () {
             $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
             showContent();
+
+            if (object["group-type"] == "recomendation") {
+                showNextButton();
+            }
         }
     }
 });
@@ -256,11 +260,11 @@ $(function () {
                             current.question = 1;
                             localStorage.setItem("current", JSON.stringify(current));
 
-                            if (current.test == 6) {
+                            /*if (current.test == 6) {
                                 await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
                                     setQuestionsArray(object, response);
                                 });
-                            }
+                            }*/
                         }
                     }
                 }
@@ -283,6 +287,10 @@ $(function () {
                 }
 
                 showContent();
+
+                if (object["group-type"] == "recomendation") {
+                    showNextButton();
+                }
             }
 
             if (isCompleted && $("section").children().length) {

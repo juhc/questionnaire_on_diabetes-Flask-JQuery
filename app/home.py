@@ -162,9 +162,9 @@ def calculate_imt(answers) -> float:
     weight = 0
     height = 0
     for i, v in enumerate(questions, start=1):
-        if v.text == 'Вес':
+        if 'Вес' in v.text:
             weight = int(answers[str(i)][0])
-        if v.text == 'Рост':
+        if 'Рост' in v.text:
             height = int(answers[str(i)][0])
     
     return weight/(height**2)
@@ -174,7 +174,7 @@ def get_waist(answers) -> int:
     questions, group_id = get_questions_and_answers_by_group('Паспортная часть')
     answers = answers[str(group_id)]
     for i, v in enumerate(questions, start=1):
-        if v.text == 'Окружность талии на уровне пупка':
+        if 'Окружность талии на уровне пупка' in v.text:
             return int(answers[str(i)][0])
 
 
