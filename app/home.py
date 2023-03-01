@@ -76,8 +76,8 @@ def get_question_data(group_id, sex) -> dict:
 def recomendation_data(answers) -> dict:
     response = {}
     recomendations = get_questions_recomendations(answers)
-    # recomendations.append(get_debq_recomendations())
-    # recomendations.append(get_dsmv_recomendations())
+    recomendations.append(get_debq_recomendations(answers))
+    recomendations.append(get_dsmv_recomendations(answers))
 
     response = {
         key: {"title": "Рекомендовано", "text": value.text}
@@ -98,8 +98,9 @@ def get_questions_and_answers_by_group(name):
     return questions
 
 
-def get_debq_recomendations():
-    questions, answers = get_questions_and_answers_by_group('DEBQ')
+def get_debq_recomendations(answers):
+    questions = get_questions_and_answers_by_group('DEBQ')
+    answers = answers['3']
 
     result = []
     for index, question in enumerate(questions, start=1):
@@ -120,8 +121,10 @@ def get_debq_recomendations():
         return Recomendations.query.filter_by(value='Норма').first()
 
 
-def get_dsmv_recomendations():
-    questions, answers = get_questions_and_answers_by_group('DSM-V')
+def get_dsmv_recomendations(answers):
+    questions = get_questions_and_answers_by_group('DSM-V')
+    answers = answers['4']
+
     yes_no_dict = {'yes':[],'no':[]}
 
     for index, question in enumerate(questions, start=1):
@@ -178,7 +181,7 @@ def get_questions_recomendations(answers):
     recomendations = []
     imt = calculate_imt(answers)
     waist = get_waist(answers)
-    
+
     if sex=='male':
         if imt < 25 and waist < 94:
             recomendations.append(
@@ -222,27 +225,24 @@ def get_questions_recomendations(answers):
     return recomendations
 
 
-def get_points_on_questions() -> int:
-    cookie = dict(request.cookies)
-    for key in cookie:
-        cookie[key] = json.loads(cookie[key])
-    cookie = cookie["2"]
+def get_points_on_questions(answers) -> int:    
+    answers = answers['2']
     questions = Question.query.filter_by(group_id=2).all()
 
-    if len(questions) != len(cookie):
+    if len(questions) != len(answers):
         return 0
 
     points = 0
     for index, question in enumerate(questions, start=1):
-        value = int(cookie[str(index)][0])
+        value = int(answers[str(index)][0])
         answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
         points += answer.point
 
     return points
 
 
-def risks_data() -> dict:
-    points = get_points_on_questions()
+def risks_data(answers) -> dict:
+    points = get_points_on_questions(answers)
 
     if points < 7:
         risk_level = "Низкий"
