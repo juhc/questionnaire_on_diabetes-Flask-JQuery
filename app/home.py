@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, redirect
-from .models import Question, Answer, Group, Recomendations
+from .models import Question, Answer, Group, Recomendations, Results
 from . import db
 import json
 
@@ -13,9 +13,9 @@ def index():
     return render_template("index.html", tests=tests)
 
 
-@home.route("/get-question", methods=['GET','POST'])
+@home.route("/get-question", methods=["GET", "POST"])
 def get_question_by_id():
-    if request.method == 'GET':
+    if request.method == "GET":
         response = {}
         group_id = request.args.get("group")
         sex = "all"
@@ -28,19 +28,22 @@ def get_question_by_id():
 
             if group.type == "recomendation":
                 if group.name == "Рекомендации":
-                    response = 'recomendations'
+                    response = "recomendations"
                 if group.name == "Оценка риска":
-                    response = 'risks'
+                    response = "risks"
 
         return jsonify(response)
-    
-@home.route('/get-recomendations', methods=['POST'])
+
+
+@home.route("/get-recomendations", methods=["POST"])
 def get_recomendations():
     answers = json.loads(request.data)
     response = recomendation_data(answers)
+    save_result_to_db(answers)
     return jsonify(response)
 
-@home.route('/get-risks', methods=['POST'])
+
+@home.route("/get-risks", methods=["POST"])
 def get_risks():
     answers = json.loads(request.data)
     response = risks_data(answers)
@@ -101,125 +104,129 @@ def get_questions_and_answers_by_group(name):
     ).first()
 
     questions = Question.query.filter_by(group_id=group_questions_id.id).all()
-    
+
     return questions, group_questions_id.id
 
 
 def get_debq_recomendations(answers):
-    questions, group_id = get_questions_and_answers_by_group('DEBQ')
+    questions, group_id = get_questions_and_answers_by_group("DEBQ")
     answers = answers[str(group_id)]
 
     result = []
     for index, question in enumerate(questions, start=1):
         answer = int(answers[str(index)][0])
-        result.append(Answer.query.filter_by(question_id=question.id).all()[answer-1].point)
-    
-    
-    if sum(result[0:10])/10 > 2.4:
-        return Recomendations.query.filter_by(value='Ограничительный').first()
-    
-    elif sum(result[10:23])/13 > 1.8:
-        return Recomendations.query.filter_by(value='Эмоциогенный').first()
-    
-    elif sum(result[23:33])/10 > 2.7:
-        return Recomendations.query.filter_by(value='Экстернальный').first()
-    
+        result.append(
+            Answer.query.filter_by(question_id=question.id).all()[answer - 1].point
+        )
+
+    if sum(result[0:10]) / 10 > 2.4:
+        return Recomendations.query.filter_by(value="Ограничительный").first()
+
+    elif sum(result[10:23]) / 13 > 1.8:
+        return Recomendations.query.filter_by(value="Эмоциогенный").first()
+
+    elif sum(result[23:33]) / 10 > 2.7:
+        return Recomendations.query.filter_by(value="Экстернальный").first()
+
     else:
-        return Recomendations.query.filter_by(value='Норма').first()
+        return Recomendations.query.filter_by(value="Норма").first()
 
 
 def get_dsmv_recomendations(answers):
-    questions, group_id = get_questions_and_answers_by_group('DSM-V')
+    questions, group_id = get_questions_and_answers_by_group("DSM-V")
     answers = answers[str(group_id)]
 
-    yes_no_dict = {'yes':[],'no':[]}
+    yes_no_dict = {"yes": [], "no": []}
 
     for index, question in enumerate(questions, start=1):
         answer = answers[str(index)]
         answers_cur_question = Answer.query.filter_by(question_id=question.id).all()
         for a in answer:
             a = int(a) - 1
-            if 'Да' in answers_cur_question[a].text:
-                yes_no_dict['yes'].append(index)
+            if "Да" in answers_cur_question[a].text:
+                yes_no_dict["yes"].append(index)
                 break
-            elif 'Нет' in answers_cur_question[a].text:
-                yes_no_dict['no'].append(index)
+            elif "Нет" in answers_cur_question[a].text:
+                yes_no_dict["no"].append(index)
 
-    if all([yes_no_dict['yes'].count(i) > 0 for i in range(1,7)]):
-        return Recomendations.query.filter_by(value='Нервная булимия').first()
-    
-    elif sum([1 for i in range(1,14) if yes_no_dict['yes'].count(i) > 0]) and 4 in yes_no_dict['no']:
-        return Recomendations.query.filter_by(value='Компульсивное переедание').first()
+    if all([yes_no_dict["yes"].count(i) > 0 for i in range(1, 7)]):
+        return Recomendations.query.filter_by(value="Нервная булимия").first()
+
+    elif (
+        sum([1 for i in range(1, 14) if yes_no_dict["yes"].count(i) > 0])
+        and 4 in yes_no_dict["no"]
+    ):
+        return Recomendations.query.filter_by(value="Компульсивное переедание").first()
 
     else:
-        return Recomendations.query.filter_by(value='Неизвестное переедание').first()
+        return Recomendations.query.filter_by(value="Неизвестное переедание").first()
 
 
 def calculate_imt(answers) -> float:
-    questions, group_id = get_questions_and_answers_by_group('Паспортная часть')
+    questions, group_id = get_questions_and_answers_by_group("Паспортная часть")
     answers = answers[str(group_id)]
-    
+
     weight = 0
     height = 0
     for i, v in enumerate(questions, start=1):
-        if 'Вес' in v.text:
+        if "Вес" in v.text:
             weight = int(answers[str(i)][0])
-        if 'Рост' in v.text:
-            height = int(answers[str(i)][0])/100
-    
-    return weight/(height**2)
+        if "Рост" in v.text:
+            height = int(answers[str(i)][0]) / 100
+
+    return weight / (height**2)
 
 
 def get_waist(answers) -> int:
-    questions, group_id = get_questions_and_answers_by_group('Паспортная часть')
+    questions, group_id = get_questions_and_answers_by_group("Паспортная часть")
     answers = answers[str(group_id)]
     for i, v in enumerate(questions, start=1):
-        if 'Окружность талии на уровне пупка' in v.text:
+        if "Окружность талии на уровне пупка" in v.text:
             return int(answers[str(i)][0])
 
 
 def get_questions_recomendations(answers):
-    questions = get_questions_and_answers_by_group('Вопросы')[0]
-    if answers['1']['1'] == ['1']:
-        sex = 'male'
+    questions = get_questions_and_answers_by_group("Вопросы")[0]
+    if answers["1"]["1"] == ["1"]:
+        sex = "male"
     else:
-        sex = 'female'
-    
+        sex = "female"
+
     recomendations = []
     imt = calculate_imt(answers)
     waist = get_waist(answers)
 
-    if sex=='male':
+    if sex == "male":
         if imt < 25 and waist < 94:
             recomendations.append(
-            Recomendations.query.filter_by(value="Нормальный вес").first()
-        )
+                Recomendations.query.filter_by(value="Нормальный вес").first()
+            )
         elif 25 <= imt <= 30 or 94 <= waist <= 102:
             recomendations.append(
-            Recomendations.query.filter_by(value="Избыточный вес").first()
-        )
+                Recomendations.query.filter_by(value="Избыточный вес").first()
+            )
         elif imt > 30 or waist > 102:
             recomendations.append(
-            Recomendations.query.filter_by(value="Ожирение").first()
-        )
-    
-    elif sex == 'female':
+                Recomendations.query.filter_by(value="Ожирение").first()
+            )
+
+    elif sex == "female":
         if imt < 25 and waist < 80:
             recomendations.append(
-            Recomendations.query.filter_by(value="Нормальный вес").first()
-        )
+                Recomendations.query.filter_by(value="Нормальный вес").first()
+            )
         elif 25 <= imt <= 30 or 80 <= waist <= 88:
             recomendations.append(
-            Recomendations.query.filter_by(value="Избыточный вес").first()
-        )
+                Recomendations.query.filter_by(value="Избыточный вес").first()
+            )
         elif imt > 30.0 or waist > 88:
             recomendations.append(
-            Recomendations.query.filter_by(value="Ожирение").first()
-        )
-    answers = answers['2']
+                Recomendations.query.filter_by(value="Ожирение").first()
+            )
+    answers = answers["2"]
     for index, question in enumerate(questions, start=1):
         value = int(answers[str(index)][0])
-        
+
         answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
         rec = Recomendations.query.filter(
             (Recomendations.extra == question.id)
@@ -232,8 +239,8 @@ def get_questions_recomendations(answers):
     return recomendations
 
 
-def get_points_on_questions(answers) -> int:    
-    answers = answers['2']
+def get_points_on_questions(answers) -> int:
+    answers = answers["2"]
     questions = Question.query.filter_by(group_id=2).all()
 
     if len(questions) != len(answers):
@@ -268,7 +275,10 @@ def risks_data(answers) -> dict:
         "group-type": "recomendation",
         "data": {
             "1": {
-                "1": {"title": "Уровень риска сахарного диабета 2 типа", "text": risk.value},
+                "1": {
+                    "title": "Уровень риска сахарного диабета 2 типа",
+                    "text": risk.value,
+                },
                 "2": {"title": "Комментарий", "text": risk.text},
                 "3": {
                     "title": "Вероятность развития сахарного диабета 2 типа в течение ближайших 10 лет",
@@ -281,5 +291,23 @@ def risks_data(answers) -> dict:
     return response
 
 
-def save_result_to_db():
-    return
+def save_result_to_db(answers):
+    # for key in range(1, 6):
+    #     questions = Question.query.filter_by(group_id=key).all()
+    #     answers_group = answers[str(key)]
+    #     for index, question in enumerate(questions, start=1):
+    #         idx = int(answers_group[str(index)][0])-1
+    #         if question.type == 'textbox':
+    #             result[question.text] = answers_group[str(index)][0]
+    #         elif question.type == 'radio':
+    #             result[question.text] = Answer.query.filter_by(question_id=question.id).all()[idx].text
+    #         elif question.type == 'checkbox':
+    #             temp = []
+    #             for i in answers_group[str(index)]: 
+    #                 temp.append(Answer.query.filter_by(question_id=question.id).all()[int(i)-1].text)
+                 
+    #             result[question.text] = '|'.join(temp)
+
+    result = Results(data=json.dumps(answers))
+    db.session.add(result)
+    db.session.commit()

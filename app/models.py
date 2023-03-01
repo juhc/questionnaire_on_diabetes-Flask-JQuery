@@ -32,4 +32,4 @@ class Group(db.Model):
 
 class Results(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
+    data = db.Column(db.String, nullable=False)
