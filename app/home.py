@@ -145,7 +145,7 @@ def get_dsmv_recomendations(answers):
             elif 'Нет' in answers_cur_question[a].text:
                 yes_no_dict['no'].append(index)
 
-    if all([yes_no_dict['yes'].count(i) == 0 for i in range(1,7)]):
+    if all([yes_no_dict['yes'].count(i) > 0 for i in range(1,7)]):
         return Recomendations.query.filter_by(value='Нервная булимия').first()
     
     elif sum([1 for i in range(1,14) if yes_no_dict['yes'].count(i) > 0]) and 4 in yes_no_dict['no']:
@@ -165,7 +165,7 @@ def calculate_imt(answers) -> float:
         if 'Вес' in v.text:
             weight = int(answers[str(i)][0])
         if 'Рост' in v.text:
-            height = int(answers[str(i)][0])
+            height = int(answers[str(i)][0])/100
     
     return weight/(height**2)
 
@@ -194,11 +194,11 @@ def get_questions_recomendations(answers):
             recomendations.append(
             Recomendations.query.filter_by(value="Нормальный вес").first()
         )
-        elif 25 <= imt <= 30 and 94 <= waist <= 102:
+        elif 25 <= imt <= 30 or 94 <= waist <= 102:
             recomendations.append(
             Recomendations.query.filter_by(value="Избыточный вес").first()
         )
-        elif imt > 30 and waist > 102:
+        elif imt > 30 or waist > 102:
             recomendations.append(
             Recomendations.query.filter_by(value="Ожирение").first()
         )
@@ -208,11 +208,11 @@ def get_questions_recomendations(answers):
             recomendations.append(
             Recomendations.query.filter_by(value="Нормальный вес").first()
         )
-        elif 25 <= imt <= 30 and 80 <= waist <= 88:
+        elif 25 <= imt <= 30 or 80 <= waist <= 88:
             recomendations.append(
             Recomendations.query.filter_by(value="Избыточный вес").first()
         )
-        elif imt > 30.0 and waist > 88:
+        elif imt > 30.0 or waist > 88:
             recomendations.append(
             Recomendations.query.filter_by(value="Ожирение").first()
         )
@@ -268,10 +268,10 @@ def risks_data(answers) -> dict:
         "group-type": "recomendation",
         "data": {
             "1": {
-                "1": {"title": "Уровень риска СД 2 типа", "text": risk.value},
+                "1": {"title": "Уровень риска сахарного диабета 2 типа", "text": risk.value},
                 "2": {"title": "Комментарий", "text": risk.text},
                 "3": {
-                    "title": "Вероятность развития СД 2 типа в течение ближайших 10 лет",
+                    "title": "Вероятность развития сахарного диабета 2 типа в течение ближайших 10 лет",
                     "text": risk.extra,
                 },
             }
