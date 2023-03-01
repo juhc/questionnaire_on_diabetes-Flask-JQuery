@@ -13,32 +13,31 @@ def index():
     return render_template("index.html", tests=tests)
 
 
-@home.route("/get-question")
+@home.route("/get-question", methods=['GET','POST'])
 def get_question_by_id():
-    response = {}
-    group_id = request.args.get("group")
-    sex = "all"
+    if request.method == 'GET':
+        response = {}
+        group_id = request.args.get("group")
+        sex = "all"
 
-    if request.cookies.get("1"):
-        if json.loads(request.cookies["1"])["1"] == ["1"]:
-            sex = "male"
-        elif json.loads(request.cookies["1"])["1"] == ["2"]:
-            sex = "female"
+        if group_id:
+            group = Group.query.get(group_id)
 
-    if group_id:
-        group = Group.query.get(group_id)
+            if group.type == "question":
+                response = get_question_data(group_id, sex)
 
-        if group.type == "question":
-            response = get_question_data(group_id, sex)
+            if group.type == "recomendation":
+                if group.name == "Рекомендации":
+                    response = None
+                if group.name == "Оценка риска":
+                    response = risks_data()
 
-        if group.type == "recomendation":
-            if group.name == "Рекомендации":
-                response = recomendation_data(sex)
-                save_result_to_db()
-            if group.name == "Оценка риска":
-                response = risks_data()
-
-    return jsonify(response)
+        return jsonify(response)
+    
+    else:
+        print(json.loads(request.data))
+        response = recomendation_data()
+        return jsonify(response)
 
 
 @home.route("/get-questions-count")
@@ -74,11 +73,11 @@ def get_question_data(group_id, sex) -> dict:
     return response
 
 
-def recomendation_data(sex) -> dict:
+def recomendation_data() -> dict:
     response = {}
-    recomendations = get_question_recomendations(sex)
-    recomendations.append(get_debq_recomendations())
-    recomendations.append(get_dsmv_recomendations())
+    recomendations = get_question_recomendations()
+    # recomendations.append(get_debq_recomendations())
+    # recomendations.append(get_dsmv_recomendations())
 
     response = {
         key: {"title": "Рекомендовано", "text": value.text}
@@ -94,8 +93,7 @@ def get_questions_and_answers_by_group(name):
         (Group.name == name) & (Group.type == "question")
     ).first()
 
-    answers = dict(request.cookies)
-    answers = json.loads(answers[str(group_questions_id.id)])
+    answers = json.loads(request.data)
 
     questions = Question.query.filter_by(group_id=group_questions_id.id).all()
     if len(questions) != len(answers):
@@ -153,6 +151,7 @@ def get_dsmv_recomendations():
 
 def calculate_imt() -> float:
     questions, answers = get_questions_and_answers_by_group('Паспортная часть')
+    
     weight = 0
     height = 0
     for i, v in enumerate(questions, start=1):
@@ -171,12 +170,16 @@ def get_waist() -> int:
             return int(answers[str(i)][0])
 
 
-def get_question_recomendations(sex):
+def get_question_recomendations():
     questions, answers = get_questions_and_answers_by_group('Вопросы')
-
+    if answers['1']['1'] == ['1']:
+        sex = 'male'
+    else:
+        sex = 'female'
+    
     recomendations = []
-    imt = calculate_imt()
-    waist = get_waist()
+    imt = 23
+    waist = 23
 
     if sex=='male':
         if imt < 25 and waist < 94:
@@ -205,9 +208,10 @@ def get_question_recomendations(sex):
             recomendations.append(
             Recomendations.query.filter_by(value="Ожирение").first()
         )
-    
+    answers = answers['2']
     for index, question in enumerate(questions, start=1):
         value = int(answers[str(index)][0])
+        print(value)
         answer = Answer.query.filter_by(question_id=question.id).all()[value - 1]
         rec = Recomendations.query.filter(
             (Recomendations.extra == question.id)

@@ -4,6 +4,7 @@ let isCompleted = null;
 let offset = 0;
 let step = 0;
 let questionsCount = 0;
+let obj_resp = {'response': null}
 
 $(async function () {
     if (tests.length) {
@@ -65,7 +66,7 @@ $(function () {
             else if (isFinite(event.key)) {
                 let inputValue = $("input[type=\"number\"]").val();
 
-                if (inputValue + event.key > 999 || inputValue + event.key < 1) {
+                if (inputValue + event.key > 999 || inputValue + event.key < 1 || inputValue.split("").push(event.key) > 3) {
                     return false;
                 }
             }
@@ -148,7 +149,6 @@ $(function () {
             if (!isCompleted) {
                 if (object["group-type"] == "question") {
                     let answersStorage = getAnswersLocalStorage(current.test);
-                    console.log(answersStorage)
                     let temp = null;
                     let input = $("input:checked");
                     let cur_q = current.question
@@ -168,7 +168,7 @@ $(function () {
                         if (answersStorage) {
                             if (answersStorage[current.test])
                                 answersStorage[current.test][cur_q] = answers;
-                            else{
+                            else {
                                 answersStorage[current.test] = {}
                                 answersStorage[current.test][cur_q] = answers;
                             }
@@ -184,10 +184,8 @@ $(function () {
                     }
                     else {
                         let input = $("input").val();
-                        answersStorage[cur_q] = [input];
-                        temp = {}
-                        temp[current.test] = answersStorage
-                        localStorage.setItem('answers', JSON.stringify(temp));
+                        answersStorage[current.test][cur_q] = [input];
+                        localStorage.setItem('answers', JSON.stringify(answersStorage));
                     }
                 }
 
@@ -208,9 +206,18 @@ $(function () {
                         localStorage.clear();
                     }
                     else {
-                        await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
-                            setQuestionsArray(object, response)
+                        await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {                            
+                            SetResponse(response)
                         });
+                        if (obj_resp.response == null)
+                            {
+                                await PostDataToUrl(linkGetQuestion, localStorage.getItem('answers')).then(response => {
+                                    console.log(response)
+                                    SetResponse(response)
+                                })
+                            }
+                        
+                        setQuestionsArray(object, obj_resp.response);
 
                         questionsCount = Object.keys(object["data"]).length;
 
@@ -232,6 +239,12 @@ $(function () {
                             current.test++;
                             current.question = 1;
                             localStorage.setItem("current", JSON.stringify(current));
+
+                            if (current.test == 6) {
+                                await PostDataToUrl(linkGetQuestion, localStorage.getItem('answers')).then(response => {
+                                    setQuestionsArray(object, response);
+                                });
+                            }
                         }
                     }
                 }

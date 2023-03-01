@@ -1,4 +1,4 @@
-const linkGetQuestionsCount = '/get-questions-count?group=';
+const linkGetQuestion = '/get-question';
 let tests = 0;
 let questions = { count: 0 };
 var expire = new Date();
@@ -93,7 +93,7 @@ function getDataFromCookie(key) {
     return null
 }
 
-function getAnswersLocalStorage(key){
+function getAnswersLocalStorage(){
     let answers = JSON.parse(localStorage.getItem('answers'));
     return answers
 }
@@ -132,10 +132,23 @@ async function getDataFromUrl(url) {
     return data;
 }
 
+async function PostDataToUrl(url, data){
+    let response = await fetch(url, {
+        method:'POST',
+        body: data
+    });
+    let content = await response.json();
+    return content;
+}
+
 function getLinkToGetQuestions(group) {
     return `/get-question?group=${group}`
 }
 
 function getQuestionsCount(questions, count) {
     questions.count = count;
+}
+
+function SetResponse(response){
+    obj_resp.response = response
 }

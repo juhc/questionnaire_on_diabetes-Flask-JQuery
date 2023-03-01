@@ -397,9 +397,10 @@ form {
     opacity: 0;
 }
 
-#answer_options input[type="radio"]:not(:checked)+label::before, #answer_options input[type="checkbox"]:not(:checked)+label::before {
-    background-color: #FFEECC;
+#answer_options input:not(:checked)+label::before {
+    background-color: transparent;
     content: "";
+    color: transparent;
 }
 
 #answer_options input:not(:checked)+label:hover::before {
@@ -422,6 +423,7 @@ input[type="checkbox"]:checked+label::before {
 
 #answer_options input:checked+label::before {
     background-color: #99FF00;
+    color: #330000;
 }
 
 #answer_options input:checked+label:hover::before {
@@ -498,6 +500,7 @@ input[type="checkbox"]:checked+label::before {
     padding: 10px;
     box-sizing: border-box;
     column-gap: 5px;
+    cursor: pointer;
 }
 
 #buttons div:hover {
@@ -513,6 +516,6 @@ input[type="checkbox"]:checked+label::before {
     line-height: 0;
 }
 
-.next {
-    cursor: pointer;
+#answer_options label.error::before {
+    display: none;
 }
