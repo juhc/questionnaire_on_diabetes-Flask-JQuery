@@ -28,16 +28,23 @@ def get_question_by_id():
 
             if group.type == "recomendation":
                 if group.name == "Рекомендации":
-                    response = None
+                    response = 'recomendations'
                 if group.name == "Оценка риска":
-                    response = risks_data()
+                    response = 'risks'
 
         return jsonify(response)
     
-    else:
-        answers = json.loads(request.data)
-        response = recomendation_data(answers)
-        return jsonify(response)
+@home.route('/get-recomendations', methods=['POST'])
+def get_recomendations():
+    answers = json.loads(request.data)
+    response = recomendation_data(answers)
+    return jsonify(response)
+
+@home.route('/get-risks', methods=['POST'])
+def get_risks():
+    answers = json.loads(request.data)
+    response = risks_data(answers)
+    return jsonify(response)
 
 
 @home.route("/get-questions-count")

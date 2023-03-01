@@ -4,26 +4,30 @@ let isCompleted = null;
 let offset = 0;
 let step = 0;
 let questionsCount = 0;
-let obj_resp = {'response': null}
+let obj_resp = { 'response': null }
 
 $(async function () {
     if (tests.length) {
         isCompleted = false;
         current = getCurrent();
-        
-        await getDataFromUrl(getLinkToGetQuestions(current.test)).then(response => {                            
+
+        await getDataFromUrl(getLinkToGetQuestions(current.test)).then(response => {
             SetResponse(response)
         });
-        if (obj_resp.response == null)
-            {
-                await PostDataToUrl(linkGetQuestion, localStorage.getItem('answers')).then(response => {
-                    console.log(response)
-                    SetResponse(response)
-                })
-            }
-        
+        if (obj_resp.response == 'recomendations') {
+            await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
+                console.log(response)
+                SetResponse(response)
+            })
+        }
+        else if (obj_resp.response == 'risks') {
+            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
+                console.log(response)
+                SetResponse(response)
+            })
+        }
+
         setQuestionsArray(object, obj_resp.response);
-        
 
         fillForm(object["data"], object["group-type"], current.question);
 
@@ -68,9 +72,6 @@ $(function () {
     $(window).keydown(function (event) {
         if ($("#answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
             if (!isFinite(event.key) && event.key != "Delete" && event.key != "Backspace") {
-                return false;
-            }
-            else if (event.key == "." || event.key == ",") {
                 return false;
             }
             else if (isFinite(event.key)) {
@@ -216,17 +217,22 @@ $(function () {
                         localStorage.clear();
                     }
                     else {
-                        await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {                            
+                        await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
                             SetResponse(response)
                         });
-                        if (obj_resp.response == null)
-                            {
-                                await PostDataToUrl(linkGetQuestion, localStorage.getItem('answers')).then(response => {
-                                    console.log(response)
-                                    SetResponse(response)
-                                })
-                            }
-                        
+                        if (obj_resp.response == 'recomendations') {
+                            await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
+                                console.log(response)
+                                SetResponse(response)
+                            })
+                        }
+                        else if (obj_resp.response == 'risks') {
+                            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
+                                console.log(response)
+                                SetResponse(response)
+                            })
+                        }
+
                         setQuestionsArray(object, obj_resp.response);
 
                         questionsCount = Object.keys(object["data"]).length;
@@ -251,7 +257,7 @@ $(function () {
                             localStorage.setItem("current", JSON.stringify(current));
 
                             if (current.test == 6) {
-                                await PostDataToUrl(linkGetQuestion, localStorage.getItem('answers')).then(response => {
+                                await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
                                     setQuestionsArray(object, response);
                                 });
                             }

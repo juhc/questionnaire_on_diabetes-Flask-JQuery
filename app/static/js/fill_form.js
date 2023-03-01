@@ -1,4 +1,5 @@
-const linkGetQuestion = '/get-question';
+const linkGetRecomendations = '/get-recomendations';
+const linkGetRisks = '/get-risks';
 let tests = 0;
 let questions = { count: 0 };
 var expire = new Date();
