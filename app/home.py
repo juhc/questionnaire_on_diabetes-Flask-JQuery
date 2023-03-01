@@ -95,12 +95,12 @@ def get_questions_and_answers_by_group(name):
 
     questions = Question.query.filter_by(group_id=group_questions_id.id).all()
     
-    return questions
+    return questions, group_questions_id.id
 
 
 def get_debq_recomendations(answers):
-    questions = get_questions_and_answers_by_group('DEBQ')
-    answers = answers['3']
+    questions, group_id = get_questions_and_answers_by_group('DEBQ')
+    answers = answers[str(group_id)]
 
     result = []
     for index, question in enumerate(questions, start=1):
@@ -122,8 +122,8 @@ def get_debq_recomendations(answers):
 
 
 def get_dsmv_recomendations(answers):
-    questions = get_questions_and_answers_by_group('DSM-V')
-    answers = answers['4']
+    questions, group_id = get_questions_and_answers_by_group('DSM-V')
+    answers = answers[str(group_id)]
 
     yes_no_dict = {'yes':[],'no':[]}
 
@@ -149,8 +149,8 @@ def get_dsmv_recomendations(answers):
 
 
 def calculate_imt(answers) -> float:
-    answers = answers['1']
-    questions = get_questions_and_answers_by_group('Паспортная часть')
+    questions, group_id = get_questions_and_answers_by_group('Паспортная часть')
+    answers = answers[str(group_id)]
     
     weight = 0
     height = 0
@@ -164,15 +164,15 @@ def calculate_imt(answers) -> float:
 
 
 def get_waist(answers) -> int:
-    answers = answers['1']
-    questions = get_questions_and_answers_by_group('Паспортная часть')
+    questions, group_id = get_questions_and_answers_by_group('Паспортная часть')
+    answers = answers[str(group_id)]
     for i, v in enumerate(questions, start=1):
         if v.text == 'Окружность талии на уровне пупка':
             return int(answers[str(i)][0])
 
 
 def get_questions_recomendations(answers):
-    questions = get_questions_and_answers_by_group('Вопросы')
+    questions = get_questions_and_answers_by_group('Вопросы')[0]
     if answers['1']['1'] == ['1']:
         sex = 'male'
     else:
