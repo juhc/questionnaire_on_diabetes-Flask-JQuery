@@ -5,23 +5,23 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
+        <title>Тестирование</title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.js"></script>
         <script src="{{url_for('static', filename='js/scrollbuttons.js')}}"></script>
         <script src="{{url_for('static', filename='js/fill_form.js')}}"></script>
         <script src="{{url_for('static', filename='js/nextbutton.js')}}"></script>
-        <title>Тестирование</title>
     </head>
     <body>
         <form>
+            <div class="left button">
+                <i class="icon fi fi-rr-angle-left"></i>
+            </div>
+            <div class="right button">
+                <i class="icon fi fi-rr-angle-right"></i>
+            </div>
             <div id="tests_panel">
-                <div class="left button">
-                    <i class="icon fi fi-rr-angle-left"></i>
-                </div>
-                <div class="right button">
-                    <i class="icon fi fi-rr-angle-right"></i>
-                </div>
                 {% for test in tests %}
                 <div class="test">
                     <div class="name">

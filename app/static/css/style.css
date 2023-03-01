@@ -1,4 +1,6 @@
 @import url('https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css');
+@import url('https://cdn-uicons.flaticon.com/uicons-bold-rounded/css/uicons-bold-rounded.css');
+@import url('https://cdn-uicons.flaticon.com/uicons-solid-straight/css/uicons-solid-straight.css');
 
 @font-face {
     font-family: "Nunito";
@@ -44,6 +46,10 @@
     #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
+
+    #answer_options label::before {
+        font-size: 14px;
+    }
 }
 
 @media (min-width: 720px) and (max-width: 960px) {
@@ -78,6 +84,10 @@
 
     #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
+    }
+
+    #answer_options label::before {
+        font-size: 14px;
     }
 }
 
@@ -114,6 +124,10 @@
     #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 16px;
     }
+
+    #answer_options label::before {
+        font-size: 14px;
+    }
 }
 
 @media (max-width: 540px) {
@@ -149,6 +163,10 @@
     #term, #answer_options label, #answer_options input, #buttons div {
         font-size: 14px;
     }
+
+    #answer_options label::before {
+        font-size: 12px;
+    }
 }
 
 html {
@@ -183,11 +201,11 @@ form {
     justify-content: flex-start;
     box-sizing: border-box;
     position: relative;
+    overflow: hidden;
 }
 
 #tests_panel {
-    max-width: 100%;
-    width: max-content;
+    width: 100%;
     height: 100px;
     border-radius: 20px 20px 0 0;
     display: flex;
@@ -209,15 +227,19 @@ form {
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    transform: translate(0, 0);
+    min-width: 1em;
+    min-height: 1em;
+    line-height: 1em;
     color: #FFEECC;
     background-color: #330000;
-    border-radius: 100%;
+    border-radius: 50%;
     font-size: 16px;
     padding: 10px;
-    box-sizing: border-box;
     opacity: 0;
     cursor: pointer;
     z-index: 2;
+    top: 32px;
 }
 
 .left {
@@ -375,9 +397,10 @@ form {
     opacity: 0;
 }
 
-#answer_options input[type="radio"]:not(:checked)+label::before, #answer_options input[type="checkbox"]:not(:checked)+label::before {
-    background-color: #FFEECC;
+#answer_options input:not(:checked)+label::before {
+    background-color: transparent;
     content: "";
+    color: transparent;
 }
 
 #answer_options input:not(:checked)+label:hover::before {
@@ -389,15 +412,18 @@ form {
 }
 
 input[type="radio"]:checked+label::before {
-    content: "●";
+    content: "\f296";
+    font-family: uicons-solid-straight !important;
 }
 
 input[type="checkbox"]:checked+label::before {
-    content: "✔";
+    content: "\f280";
+    font-family: uicons-bold-rounded !important;
 }
 
 #answer_options input:checked+label::before {
     background-color: #99FF00;
+    color: #330000;
 }
 
 #answer_options input:checked+label:hover::before {
@@ -409,23 +435,21 @@ input[type="checkbox"]:checked+label::before {
 }
 
 #answer_options label::before {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
+    transform: translate(0, 0);
     min-width: 1em;
     min-height: 1em;
     line-height: 1em;
+    padding: 2px;
     border: 1px solid #330000;
     transition: 300ms;
 }
 
 #answer_options input[type="radio"]+label::before {
-    border-radius: 100%;
+    border-radius: 50%;
 }
 
 #answer_options input[type="checkbox"]+label::before {
-    border-radius: 5px;
+    border-radius: 25%;
 }
 
 #answer_options input[type="text"], #answer_options input[type="number"] {
@@ -490,4 +514,8 @@ input[type="checkbox"]:checked+label::before {
 .icon {
     display: block;
     line-height: 0;
+}
+
+#answer_options label.error::before {
+    display: none;
 }

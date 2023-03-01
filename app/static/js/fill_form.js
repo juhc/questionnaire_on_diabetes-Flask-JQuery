@@ -1,5 +1,6 @@
-const linkGetQuestionsCount = '/get-questions-count?group=';
-let tests = document.getElementsByClassName("test");
+const linkGetRecomendations = '/get-recomendations';
+const linkGetRisks = '/get-risks'
+let tests = 0;
 let questions = { count: 0 };
 var expire = new Date();
 expire.setMonth(expire.getMonth() + 1);
@@ -23,7 +24,7 @@ function fillForm(data, type, question) {
                 if (questionData.answers[i].text != null) {
                     $(`.group${i + 1}`).append(`<label for=\"${questionData.answers[i].type}${i + 1}\">${questionData.answers[i].text}</label>`)
                 }
-                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\" ${questionData.answers[i].type == "text" ? "minlength=\"1\" maxlength=\"20\"" : "min=\"0\" max=\"120\""}>`);
+                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\" ${questionData.answers[i].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`);
             }
         }
         else {
@@ -76,21 +77,24 @@ function fillForm(data, type, question) {
             $(".recomendation").html(recomendationData.title);
             $(".recomendation_text").append(`<p>${recomendationData.text}</p>`);
         }
-
-        showNextButton();
     }
 
     calculateWidth();
 }
 
 function getDataFromCookie(key) {
-    keys = document.cookie.split(';');
+    var keys = document.cookie.split(';');
     for (let k in keys) {
         if (keys[k].split('=')[0] == key) {
             return keys[k].split('=')[1]
         }
     }
     return null
+}
+
+function getAnswersLocalStorage(){
+    let answers = JSON.parse(localStorage.getItem('answers'));
+    return answers
 }
 
 function setData(data, text, type, notion, answers) {
@@ -127,6 +131,15 @@ async function getDataFromUrl(url) {
     return data;
 }
 
+async function PostDataToUrl(url, data){
+    let response = await fetch(url, {
+        method:'POST',
+        body: data
+    });
+    let content = await response.json();
+    return content;
+}
+
 function getLinkToGetQuestions(group) {
     return `/get-question?group=${group}`
 }
@@ -135,13 +148,6 @@ function getQuestionsCount(questions, count) {
     questions.count = count;
 }
 
-function cookiesDelete() {
-    var cookies = document.cookie.split(";");
-    for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i];
-        var eqPos = cookie.indexOf("=");
-        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-        document.cookie = name + '=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    }
+function SetResponse(response){
+    obj_resp.response = response
 }

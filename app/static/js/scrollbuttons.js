@@ -8,12 +8,8 @@ let display = {
 $(function() {
     calculateWidth();
 
-    $(window).resize(function() {
-        calculateWidth();
-    });
-
     $("#tests_panel").scroll(function() {
-        showButtons(testsWidth, panelWidth, display);
+        showButtons();
     });
 
     $(".left").mouseenter(function() {
@@ -52,20 +48,21 @@ $(function() {
 });
 
 function calculateWidth() {
-    testsWidth = getTestsWidth(tests);
+    testsWidth = getTestsWidth();
     panelWidth = Math.round($("#tests_panel").width());
     showButtons(testsWidth, panelWidth, display);
 }
 
-function getTestsWidth(tests) {
+function getTestsWidth() {
     let testsWidth = 0;
+    tests = document.getElementsByClassName("test");
     for (let i = 0; i < tests.length; i++) {
         testsWidth += $(tests[i]).width() + 20;
     }
     return Math.round(testsWidth);
 }
 
-function showButtons(testsWidth, panelWidth, display) {
+function showButtons() {
     if (testsWidth != panelWidth) {
         if ($("#tests_panel").scrollLeft() > 0 && $("#tests_panel").scrollLeft() < testsWidth - panelWidth) {
             if (display.leftButton == "none" && display.rightButton == "none") {
