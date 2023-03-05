@@ -5,8 +5,11 @@ let offset = 0;
 let step = 0;
 let questionsCount = 0;
 let obj_resp = { 'response': null }
+let storageData = null;
 
 $(async function () {
+    storageData = null;
+
     if (tests.length) {
         isCompleted = false;
         current = getCurrent();
@@ -16,13 +19,11 @@ $(async function () {
         });
         if (obj_resp.response == 'recomendations') {
             await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
-                console.log(response)
                 SetResponse(response)
             })
         }
         else if (obj_resp.response == 'risks') {
             await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
-                console.log(response)
                 SetResponse(response)
             })
         }
@@ -49,6 +50,15 @@ $(async function () {
             $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
             showContent();
+
+            if (current.question != 1) {
+                $("#buttons").append(`<div class=\"first_button back\" onclick=\"\"><i class=\"icon fi fi-rr-arrow-small-left\"></i><span>Назад</span></div>`);
+                $(".back").animate({ opacity: 1 }, {
+                    duration: "fast", easing: "linear", done: function () {
+                        $(".back").css({ transition: "300ms" });
+                    }, queue: false
+                });
+            }
 
             if (object["group-type"] == "recomendation") {
                 showNextButton();
@@ -92,7 +102,7 @@ $(function () {
         if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
             return false;
         }
-        if ($("#buttons").children("div").hasClass("next") && event.key == "Enter") {
+        if ($("#buttons").children(".second_button").hasClass("next") && event.key == "Enter") {
             $(".next").trigger("click");
         }
     })
@@ -154,7 +164,7 @@ $(function () {
             }
         }
 
-        else if ($("#buttons").children("div").hasClass("next") && (event.target.className == "next" || $(".next").has(event.target).length)) {
+        else if (($("#buttons").children(".second_button").hasClass("next") && (event.target.className.includes("next") || $(".next").has(event.target).length)) || (event.target.className.includes("back") || $(".back").has(event.target).length)) {
             if (object["group-type"] == "question") {
                 hideNextButton();
             }
@@ -162,45 +172,52 @@ $(function () {
             hideContent();
 
             if (!isCompleted) {
-                if (object["group-type"] == "question") {
-                    let answersStorage = getAnswersLocalStorage(current.test);
-                    let temp = null;
-                    let input = $("input:checked");
-                    let cur_q = current.question
+                let backButtonClicked = (event.target.className.includes("back") || $(".back").has(event.target).length)
 
-                    if (input.length) {
-                        let answers = [];
+                if (backButtonClicked) {
+                    current.question -= 2;
+                }
+                else {
+                    if (object["group-type"] == "question") {
+                        let answersStorage = getAnswersLocalStorage(current.test);
+                        let temp = null;
+                        let input = $("input:checked");
+                        let cur_q = current.question
 
-                        for (let i = 0; i < input.length; i++) {
-                            if ($(input[i]).hasClass("with_input")) {
-                                answers.push($(input[i]).parent().children("label").children("input").val());
+                        if (input.length) {
+                            let answers = [];
+
+                            for (let i = 0; i < input.length; i++) {
+                                if ($(input[i]).hasClass("with_input")) {
+                                    answers.push($(input[i]).parent().children("label").children("input").val());
+                                }
+                                else {
+                                    answers.push($(input[i]).parent().attr("class").substr(5));
+                                }
+                            }
+
+                            if (answersStorage) {
+                                if (answersStorage[current.test])
+                                    answersStorage[current.test][cur_q] = answers;
+                                else {
+                                    answersStorage[current.test] = {}
+                                    answersStorage[current.test][cur_q] = answers;
+                                }
+                                localStorage.setItem('answers', JSON.stringify(answersStorage));
                             }
                             else {
-                                answers.push($(input[i]).parent().attr("class").substr(5));
+                                answersStorage = {};
+                                temp = {}
+                                temp[cur_q] = answers
+                                answersStorage[current.test] = temp;
+                                localStorage.setItem('answers', JSON.stringify(answersStorage));
                             }
-                        }
-
-                        if (answersStorage) {
-                            if (answersStorage[current.test])
-                                answersStorage[current.test][cur_q] = answers;
-                            else {
-                                answersStorage[current.test] = {}
-                                answersStorage[current.test][cur_q] = answers;
-                            }
-                            localStorage.setItem('answers', JSON.stringify(answersStorage));
                         }
                         else {
-                            answersStorage = {};
-                            temp = {}
-                            temp[cur_q] = answers
-                            answersStorage[current.test] = temp;
+                            let input = $("input").val();
+                            answersStorage[current.test][cur_q] = [input];
                             localStorage.setItem('answers', JSON.stringify(answersStorage));
                         }
-                    }
-                    else {
-                        let input = $("input").val();
-                        answersStorage[current.test][cur_q] = [input];
-                        localStorage.setItem('answers', JSON.stringify(answersStorage));
                     }
                 }
 
@@ -218,7 +235,6 @@ $(function () {
                     if (current.test + 1 > tests.length) {
                         $("title").html("Тестирование завершено!");
                         isCompleted = true;
-                        localStorage.clear();
                     }
                     else {
                         await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
@@ -226,13 +242,11 @@ $(function () {
                         });
                         if (obj_resp.response == 'recomendations') {
                             await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
-                                console.log(response)
                                 SetResponse(response)
                             })
                         }
                         else if (obj_resp.response == 'risks') {
                             await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
-                                console.log(response)
                                 SetResponse(response)
                             })
                         }
@@ -259,12 +273,6 @@ $(function () {
                             current.test++;
                             current.question = 1;
                             localStorage.setItem("current", JSON.stringify(current));
-
-                            /*if (current.test == 6) {
-                                await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
-                                    setQuestionsArray(object, response);
-                                });
-                            }*/
                         }
                     }
                 }
@@ -272,7 +280,22 @@ $(function () {
                     current.question++;
                     localStorage.setItem("current", JSON.stringify(current));
                 }
+            }
 
+            if (isCompleted) {
+                storageData = localStorage.getItem("answers");
+                localStorage.clear();
+                showContent();
+                $("section").append("<h1 id=\"the_end\">Тестирование завершено!</h1><div id=\"the_end_text\"><p>Благодарим Вас за уделённое время<p></div><div id=\"buttons\"></div>");
+                $("#buttons").append("<div class=\"third_button reload\" onclick=\"\"><i class=\"icon fi fi-rr-rotate-right\"></i><span>Начать сначала</span></div>");
+                $("#buttons").append("<input type=\"submit\" class=\"forth_button download_results\" onclick=\"\"><span>Скачать рекомендации</span><i class=\"icon fi fi-rr-download\"></i></div>");
+                $(".reload, .download_results").animate({ opacity: 1 }, {
+                    duration: "fast", easing: "linear", done: function () {
+                        $(".reload, .download_results").css({ transition: "300ms" });
+                    }, queue: false
+                });
+            }
+            else {
                 fillForm(object["data"], object["group-type"], current.question);
 
                 if (offset < testsWidth - panelWidth) {
@@ -288,14 +311,35 @@ $(function () {
 
                 showContent();
 
+                if (current.question != 1) {
+                    $("#buttons").append(`<div class=\"first_button back\" onclick=\"\"><i class=\"icon fi fi-rr-arrow-small-left\"></i><span>Назад</span></div>`);
+                    $(".back").animate({ opacity: 1 }, {
+                        duration: "fast", easing: "linear", done: function () {
+                            $(".back").css({ transition: "300ms" });
+                        }, queue: false
+                    });
+                }
+
                 if (object["group-type"] == "recomendation") {
                     showNextButton();
                 }
             }
 
-            if (isCompleted && $("section").children().length) {
-                $("section").children().remove();
-            }
+        }
+
+        else if (event.target.className.includes("reload") || $(".reload").has(event.target).length) {
+            location.reload();
+        }
+
+        else if (event.target.className.includes("download_results") || $(".download_results").has(event.target).length) {
+            await PostDataToUrl("/recomendations-xlsx", storageData).then(response => {
+            })
+
+            let link = document.createElement('a');
+	        link.setAttribute('href', '/recomendations-xlsx');
+	        link.setAttribute('download', 'rec.xlsx');
+	        link.click();
+	        return false;
         }
 
         else {
@@ -308,7 +352,7 @@ $(function () {
 
 function onDeleting(event) {
     if (event.key == "Backspace" || event.key == "Delete") {
-        $("#buttons").children("div").removeClass("next");
+        $("#buttons").children(".second_button").removeClass("next");
     }
 }
 
@@ -322,27 +366,27 @@ function showOrHideNextButton(event) {
 }
 
 function showNextButton() {
-    if ($("#buttons").children().length && !$("#buttons").children("div").hasClass("next")) {
-        $("#buttons").children("div").addClass("next");
+    if ($("#buttons").children(".second_button").length && !$("#buttons").children(".second_button").hasClass("next")) {
+        $("#buttons").children(".second_button").addClass("next");
     }
-    else if (!$("#buttons").children().length) {
+    else if (!$("#buttons").children(".second_button").length) {
         animateNextButton();
     }
 }
 
 function hideNextButton() {
-    $("#buttons").children("div").removeClass("next");
-    $("#buttons > div").animate({ opacity: 0 }, {
+    $("#buttons").children(".second_button").removeClass("next");
+    $(".second_button").animate({ opacity: 0 }, {
         duration: "fast", easing: "linear", start: function () {
-            $("#buttons > div").css({ transition: "none" });
+            $(".second_button").css({ transition: "none" });
         }, done: function () {
-            $("#buttons").children().remove();
+            $("#buttons").children(".second_button").remove();
         }, queue: false
     });
 }
 
 function animateNextButton() {
-    $("#buttons").append("<div class=\"next\" onclick=\"\"><span>Далее</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>");
+    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${current.question + 1 > questionsCount ? "Завершить" : "Далее"}</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>`);
     $(".next").animate({ opacity: 1 }, {
         duration: "fast", easing: "linear", done: function () {
             $(".next").css({ transition: "300ms" });

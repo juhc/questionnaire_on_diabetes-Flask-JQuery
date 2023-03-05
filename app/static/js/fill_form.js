@@ -13,9 +13,7 @@ function fillForm(data, type, question) {
         let questionData = data[question];
 
         $("section").append("<h1 id=\"question\"></h1><div id=\"answer_options\"></div><div id=\"buttons\"></div>");
-
         $("#question").html(questionData.text);
-
         $("#answer_options").addClass(questionData.type);
 
         if (questionData.type == "textbox") {

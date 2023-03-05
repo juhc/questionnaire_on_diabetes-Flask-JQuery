@@ -1,7 +1,9 @@
-from flask import Blueprint, render_template, request, jsonify, redirect
+from flask import Blueprint, render_template, request, jsonify, send_file, url_for
 from .models import Question, Answer, Group, Recomendations, Results
 from . import db
 import json
+import openpyxl
+import time
 
 
 home = Blueprint("home", __name__)
@@ -292,22 +294,71 @@ def risks_data(answers) -> dict:
 
 
 def save_result_to_db(answers):
-    # for key in range(1, 6):
-    #     questions = Question.query.filter_by(group_id=key).all()
-    #     answers_group = answers[str(key)]
-    #     for index, question in enumerate(questions, start=1):
-    #         idx = int(answers_group[str(index)][0])-1
-    #         if question.type == 'textbox':
-    #             result[question.text] = answers_group[str(index)][0]
-    #         elif question.type == 'radio':
-    #             result[question.text] = Answer.query.filter_by(question_id=question.id).all()[idx].text
-    #         elif question.type == 'checkbox':
-    #             temp = []
-    #             for i in answers_group[str(index)]: 
-    #                 temp.append(Answer.query.filter_by(question_id=question.id).all()[int(i)-1].text)
-                 
-    #             result[question.text] = '|'.join(temp)
-
     result = Results(data=json.dumps(answers))
     db.session.add(result)
     db.session.commit()
+
+
+@home.route('/test')
+def test():
+    save_results_to_excel()
+    return {}
+
+@home.route('/recomendations-xlsx', methods=['POST', "GET"])
+def get_recomendations_xlsx():
+    answers = json.loads(request.data)
+    get_recomendations_file(answers)
+    time.sleep(2)
+    return send_file('..\\\\rec.xlsx', as_attachment=True)
+
+
+def save_results_to_excel():
+    results = Results.query.all()
+    book = openpyxl.Workbook()
+    sheet = book.active
+
+    titles = get_questions_titles()
+
+    for i,v in enumerate(titles, start=1):
+        sheet.cell(row=1, column=i).value = v 
+
+    results = Results.query.all()
+
+
+    for row, result in enumerate(results, start=2):
+        data = json.loads(result.data)
+        col = 1
+        for group in data:
+            for question in data[group]:                
+                question_id = Question.query.filter_by(group_id=group).all()[int(question)-1]
+                answers = Answer.query.filter_by(question_id=question_id.id).all()
+                if question_id.type == 'radio':
+                    if data[group][question][0] in [str(i) for i in range(1, len(answers)+1)]:
+                        answer_title = answers[int(data[group][question][0])-1].text
+                    else:
+                        answer_title = data[group][question][0]
+                    sheet.cell(row=row, column=col).value = answer_title
+                elif question_id.type == 'textbox':
+                    sheet.cell(row=row, column=col).value = data[group][question][0]
+                elif question_id.type == 'checkbox':
+                    answer_title = [answers[int(i)-1].text for i in data[group][question]]
+                    sheet.cell(row=row, column=col).value = '\n'.join(answer_title)
+                
+                col += 1
+            
+    book.save('test.xlsx')
+    
+
+def get_questions_titles():
+    questions = Question.query.order_by(Question.group_id).all()
+
+    return [question.text for question in questions]
+
+def get_recomendations_file(answers):
+    recomendations = recomendation_data(answers)['data']
+    book = openpyxl.Workbook()
+    sheet = book.active
+    for i, v in enumerate(recomendations, start=1):
+        sheet.cell(row=i, column=1).value = recomendations[v]['text']
+    
+    book.save('rec.xlsx')
