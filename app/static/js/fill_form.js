@@ -90,9 +90,8 @@ function getDataFromCookie(key) {
     return null
 }
 
-function getAnswersLocalStorage(){
-    let answers = JSON.parse(localStorage.getItem('answers'));
-    return answers
+function getAnswersLocalStorage() {
+    return JSON.parse(localStorage.getItem('answers'));
 }
 
 function setData(data, text, type, notion, answers) {

@@ -3,6 +3,7 @@ from .models import Question, Answer, Group, Recomendations, Results
 from . import db
 import json
 import openpyxl
+import os
 import time
 
 
@@ -299,16 +300,27 @@ def save_result_to_db(answers):
     db.session.commit()
 
 
-@home.route('/test')
-def test():
+@home.route('/results')
+def get_results():
     save_results_to_excel()
-    return {}
+    return send_file("".join((os.getcwd(),'\\app\\tmp\\','results.xlsx')), download_name='Результаты.xlsx', as_attachment=True)
 
-@home.route('/recomendations-xlsx')
+
+@home.route("/recomendations-xlsx", methods=['POST','GET'])
 def get_recomendations_xlsx():
-    answers = json.loads(request.args.get('answers'))
-    get_recomendations_file(answers)
-    return send_file('..//rec.xlsx', as_attachment=True)
+    if request.method == 'POST':
+        time.sleep(1)
+        name = json.loads(request.data)['filename']
+        filename = ''.join((os.getcwd(),'\\app\\tmp\\',name, '.xlsx'))
+        os.remove(filename)
+        return jsonify({})
+    
+    answers = json.loads(request.args.get("answers"))
+    filename = "".join((os.getcwd(),'\\app\\tmp\\',request.args.get("name"), ".xlsx"))
+    d = os.getcwd()
+    book = get_recomendations_file(answers)
+    book.save(filename)
+    return send_file(filename, as_attachment=True, download_name="Рекомендации.xlsx")
 
 
 def save_results_to_excel():
@@ -318,46 +330,57 @@ def save_results_to_excel():
 
     titles = get_questions_titles()
 
-    for i,v in enumerate(titles, start=1):
-        sheet.cell(row=1, column=i).value = v 
+    for i, v in enumerate(titles, start=1):
+        sheet.cell(row=1, column=i).value = v
 
     results = Results.query.all()
-
 
     for row, result in enumerate(results, start=2):
         data = json.loads(result.data)
         col = 1
         for group in data:
-            for question in data[group]:                
-                question_id = Question.query.filter_by(group_id=group).all()[int(question)-1]
+            for question in data[group]:
+                question_id = Question.query.filter_by(group_id=group).all()[
+                    int(question) - 1
+                ]
                 answers = Answer.query.filter_by(question_id=question_id.id).all()
-                if question_id.type == 'radio':
-                    if data[group][question][0] in [str(i) for i in range(1, len(answers)+1)]:
-                        answer_title = answers[int(data[group][question][0])-1].text
+                if question_id.type == "radio":
+                    if data[group][question][0] in [
+                        str(i) for i in range(1, len(answers) + 1)
+                    ]:
+                        answer_title = answers[int(data[group][question][0]) - 1].text
                     else:
                         answer_title = data[group][question][0]
                     sheet.cell(row=row, column=col).value = answer_title
-                elif question_id.type == 'textbox':
+                elif question_id.type == "textbox":
                     sheet.cell(row=row, column=col).value = data[group][question][0]
-                elif question_id.type == 'checkbox':
-                    answer_title = [answers[int(i)-1].text for i in data[group][question]]
-                    sheet.cell(row=row, column=col).value = '\n'.join(answer_title)
-                
+                elif question_id.type == "checkbox":
+                    answer_title = [
+                        answers[int(i) - 1].text for i in data[group][question]
+                    ]
+                    sheet.cell(row=row, column=col).value = "\n".join(answer_title)
+
                 col += 1
-            
-    book.save('test.xlsx')
-    
+
+    book.save("".join((os.getcwd(),'\\app\\tmp\\','results.xlsx')))
+
 
 def get_questions_titles():
     questions = Question.query.order_by(Question.group_id).all()
 
     return [question.text for question in questions]
 
+
 def get_recomendations_file(answers):
-    recomendations = recomendation_data(answers)['data']
+    recomendations = recomendation_data(answers)["data"]
     book = openpyxl.Workbook()
     sheet = book.active
     for i, v in enumerate(recomendations, start=1):
-        sheet.cell(row=i, column=1).value = recomendations[v]['text']
+        sheet.cell(row=i, column=1).value = recomendations[v]["text"]
     
-    book.save('rec.xlsx')
+    risks = risks_data(answers)["data"]["1"]
+    for row, key in enumerate(risks, start=len(recomendations)+2):
+        sheet.cell(row=row, column=1).value = risks[key]['title']
+        sheet.cell(row=row, column=2).value = risks[key]['text']
+    return book
+

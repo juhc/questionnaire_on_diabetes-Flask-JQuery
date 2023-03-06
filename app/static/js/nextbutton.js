@@ -6,6 +6,7 @@ let step = 0;
 let questionsCount = 0;
 let obj_resp = { 'response': null }
 let storageData = null;
+let hasDiabet = false;
 
 $(async function () {
     storageData = null;
@@ -174,7 +175,7 @@ $(function () {
                 }
                 else {
                     if (object["group-type"] == "question") {
-                        let answersStorage = getAnswersLocalStorage(current.test);
+                        let answersStorage = getAnswersLocalStorage();
                         let temp = null;
                         let input = $("input:checked");
                         let cur_q = current.question
@@ -323,11 +324,13 @@ $(function () {
         
 
         else if (event.target.className.includes("download_results") || $(".download_results").has(event.target).length) {
+            let filename = uniqueID();
             let link = document.createElement("a");
-            link.setAttribute("href", `/recomendations-xlsx?answers=${storageData}`);
+            link.setAttribute("href", `/recomendations-xlsx?name=${filename}&answers=${storageData}`);
             link.setAttribute("download", "rec.xlsx");
             link.click();
-            return false
+            PostDataToUrl('/recomendations-xlsx', JSON.stringify({'filename': filename}));
+            return false;
         }
 
         else {
@@ -413,4 +416,8 @@ function check(event) {
     });
 
     showOrHideNextButton(event);
+}
+
+function uniqueID() {
+    return Math.floor(Math.random() * Date.now()).toString()
 }
