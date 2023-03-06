@@ -320,9 +320,14 @@ $(function () {
         else if (event.target.className.includes("reload") || $(".reload").has(event.target).length) {
             location.reload();
         }
+        
 
         else if (event.target.className.includes("download_results") || $(".download_results").has(event.target).length) {
-            alert("Данная функция находится в разработке!");
+            let link = document.createElement("a");
+            link.setAttribute("href", `/recomendations-xlsx?answers=${storageData}`);
+            link.setAttribute("download", "rec.xlsx");
+            link.click();
+            return false
         }
 
         else {

@@ -304,13 +304,11 @@ def test():
     save_results_to_excel()
     return {}
 
-@home.route('/recomendations-xlsx', methods=['POST'])
+@home.route('/recomendations-xlsx')
 def get_recomendations_xlsx():
-    print(request.data)
-    answers = json.loads(request.data)
+    answers = json.loads(request.args.get('answers'))
     get_recomendations_file(answers)
-    time.sleep(2)
-    return send_file('..\\\\rec.xlsx', as_attachment=True)
+    return send_file('..//rec.xlsx', as_attachment=True)
 
 
 def save_results_to_excel():
