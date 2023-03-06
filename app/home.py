@@ -5,7 +5,7 @@ import json
 import openpyxl
 import os
 import time
-from pathlib import Path
+import io
 
 
 home = Blueprint("home", __name__)
@@ -303,9 +303,12 @@ def save_result_to_db(answers):
 
 @home.route("/results")
 def get_results():
-    save_results_to_excel()
+    book = save_results_to_excel()
+    buffer = io.BytesIO()
+    book.save(buffer)
+    buffer.seek(0)
     return send_file(
-        Path(Path.cwd()/"app"/"tmp"/"results.xlsx"),
+        buffer,
         download_name="Результаты.xlsx",
         as_attachment=True,
     )
@@ -313,20 +316,22 @@ def get_results():
 
 @home.route("/recomendations-xlsx", methods=["POST", "GET"])
 def get_recomendations_xlsx():
-    if request.method == "POST":
-        time.sleep(1)
-        name = json.loads(request.data)["filename"]
-        filename = Path(Path.cwd() / "app" / "tmp" / "".join((name, ".xlsx")))
-        os.remove(filename)
-        return jsonify({})
+    # if request.method == "POST":
+    #     time.sleep(1)
+    #     name = json.loads(request.data)["filename"]
+    #     filename = Path(Path.cwd() / "app" / "tmp" / "".join((name, ".xlsx")))
+    #     os.remove(filename)
+    #     return jsonify({})
 
+    buffer = io.BytesIO()
     answers = json.loads(request.args.get("answers"))
-    filename = Path(
-        Path.cwd() / "app" / "tmp" / "".join((request.args.get("name"), ".xlsx"))
-    )
+    # filename = Path(
+    #     Path.cwd() / "app" / "tmp" / "".join((request.args.get("name"), ".xlsx"))
+    # )
     book = get_recomendations_file(answers)
-    book.save(filename)
-    return send_file(filename, as_attachment=True, download_name="Рекомендации.xlsx")
+    book.save(buffer)
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="Рекомендации.xlsx")
 
 
 def save_results_to_excel():
@@ -368,7 +373,7 @@ def save_results_to_excel():
 
                 col += 1
 
-    book.save(Path(Path.cwd() / "app" / "tmp" / "results.xlsx"))
+    return book
 
 
 def get_questions_titles():

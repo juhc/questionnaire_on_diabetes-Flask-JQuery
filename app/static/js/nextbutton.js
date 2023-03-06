@@ -329,7 +329,7 @@ $(function () {
             link.setAttribute("href", `/recomendations-xlsx?name=${filename}&answers=${storageData}`);
             link.setAttribute("download", "");
             link.click();
-            await PostDataToUrl('/recomendations-xlsx', JSON.stringify({'filename': filename}))
+            //await PostDataToUrl('/recomendations-xlsx', JSON.stringify({'filename': filename}))
             return false;
         }
 
