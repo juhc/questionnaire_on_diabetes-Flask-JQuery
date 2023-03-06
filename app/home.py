@@ -5,6 +5,7 @@ import json
 import openpyxl
 import os
 import time
+from pathlib import Path
 
 
 home = Blueprint("home", __name__)
@@ -300,23 +301,29 @@ def save_result_to_db(answers):
     db.session.commit()
 
 
-@home.route('/results')
+@home.route("/results")
 def get_results():
     save_results_to_excel()
-    return send_file("".join((os.getcwd(),'\\app\\tmp\\','results.xlsx')), download_name='Результаты.xlsx', as_attachment=True)
+    return send_file(
+        Path(Path.cwd()/"app"/"tmp"/"results.xlsx"),
+        download_name="Результаты.xlsx",
+        as_attachment=True,
+    )
 
 
-@home.route("/recomendations-xlsx", methods=['POST','GET'])
+@home.route("/recomendations-xlsx", methods=["POST", "GET"])
 def get_recomendations_xlsx():
-    if request.method == 'POST':
+    if request.method == "POST":
         time.sleep(1)
-        name = json.loads(request.data)['filename']
-        filename = ''.join((os.getcwd(),'\\app\\tmp\\',name, '.xlsx'))
+        name = json.loads(request.data)["filename"]
+        filename = Path(Path.cwd() / "app" / "tmp" / "".join((name, ".xlsx")))
         os.remove(filename)
         return jsonify({})
-    
+
     answers = json.loads(request.args.get("answers"))
-    filename = "".join((os.getcwd(),'\\app\\tmp\\',request.args.get("name"), ".xlsx"))
+    filename = Path(
+        Path.cwd() / "app" / "tmp" / "".join((request.args.get("name"), ".xlsx"))
+    )
     d = os.getcwd()
     book = get_recomendations_file(answers)
     book.save(filename)
@@ -362,7 +369,7 @@ def save_results_to_excel():
 
                 col += 1
 
-    book.save("".join((os.getcwd(),'\\app\\tmp\\','results.xlsx')))
+    book.save(Path(Path.cwd() / "app" / "tmp" / "results.xlsx"))
 
 
 def get_questions_titles():
@@ -377,10 +384,9 @@ def get_recomendations_file(answers):
     sheet = book.active
     for i, v in enumerate(recomendations, start=1):
         sheet.cell(row=i, column=1).value = recomendations[v]["text"]
-    
-    risks = risks_data(answers)["data"]["1"]
-    for row, key in enumerate(risks, start=len(recomendations)+2):
-        sheet.cell(row=row, column=1).value = risks[key]['title']
-        sheet.cell(row=row, column=2).value = risks[key]['text']
-    return book
 
+    risks = risks_data(answers)["data"]["1"]
+    for row, key in enumerate(risks, start=len(recomendations) + 2):
+        sheet.cell(row=row, column=1).value = risks[key]["title"]
+        sheet.cell(row=row, column=2).value = risks[key]["text"]
+    return book

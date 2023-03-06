@@ -15,6 +15,9 @@ $(async function () {
         isCompleted = false;
         current = getCurrent();
 
+        console.log(tests.length)
+
+
         await getDataFromUrl(getLinkToGetQuestions(current.test)).then(response => {
             SetResponse(response)
         });
@@ -327,7 +330,7 @@ $(function () {
             let filename = uniqueID();
             let link = document.createElement("a");
             link.setAttribute("href", `/recomendations-xlsx?name=${filename}&answers=${storageData}`);
-            link.setAttribute("download", "rec.xlsx");
+            link.setAttribute("download", "");
             link.click();
             PostDataToUrl('/recomendations-xlsx', JSON.stringify({'filename': filename}));
             return false;
