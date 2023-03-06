@@ -324,7 +324,6 @@ def get_recomendations_xlsx():
     filename = Path(
         Path.cwd() / "app" / "tmp" / "".join((request.args.get("name"), ".xlsx"))
     )
-    d = os.getcwd()
     book = get_recomendations_file(answers)
     book.save(filename)
     return send_file(filename, as_attachment=True, download_name="Рекомендации.xlsx")
