@@ -52,12 +52,7 @@ $(async function () {
             showContent();
 
             if (current.question != 1) {
-                $("#buttons").append(`<div class=\"first_button back\" onclick=\"\"><i class=\"icon fi fi-rr-arrow-small-left\"></i><span>Назад</span></div>`);
-                $(".back").animate({ opacity: 1 }, {
-                    duration: "fast", easing: "linear", done: function () {
-                        $(".back").css({ transition: "300ms" });
-                    }, queue: false
-                });
+                showBackButton();
             }
 
             if (object["group-type"] == "recomendation") {
@@ -286,9 +281,9 @@ $(function () {
                 storageData = localStorage.getItem("answers");
                 localStorage.clear();
                 showContent();
-                $("section").append("<h1 id=\"the_end\">Тестирование завершено!</h1><div id=\"the_end_text\"><p>Благодарим Вас за уделённое время<p></div><div id=\"buttons\"></div>");
-                $("#buttons").append("<div class=\"third_button reload\" onclick=\"\"><i class=\"icon fi fi-rr-rotate-right\"></i><span>Начать сначала</span></div>");
-                $("#buttons").append("<input type=\"submit\" class=\"forth_button download_results\" onclick=\"\"><span>Скачать рекомендации</span><i class=\"icon fi fi-rr-download\"></i></div>");
+                $("section").append("<h1 id=\"the_end\">Тестирование завершено!</h1><div id=\"the_end_text\"><p>Благодарим Вас за уделённое время</p></div><div id=\"buttons\"></div>");
+                $("#buttons").append("<div class=\"third_button reload\" onclick=\"\"><i class=\"icon fi fi-br-rotate-right\"></i><span>Начать сначала</span></div>");
+                $("#buttons").append("<div class=\"forth_button download_results\" onclick=\"\"><span>Скачать рекомендации</span><i class=\"icon fi fi-br-download\"></i></div>");
                 $(".reload, .download_results").animate({ opacity: 1 }, {
                     duration: "fast", easing: "linear", done: function () {
                         $(".reload, .download_results").css({ transition: "300ms" });
@@ -312,12 +307,7 @@ $(function () {
                 showContent();
 
                 if (current.question != 1) {
-                    $("#buttons").append(`<div class=\"first_button back\" onclick=\"\"><i class=\"icon fi fi-rr-arrow-small-left\"></i><span>Назад</span></div>`);
-                    $(".back").animate({ opacity: 1 }, {
-                        duration: "fast", easing: "linear", done: function () {
-                            $(".back").css({ transition: "300ms" });
-                        }, queue: false
-                    });
+                    showBackButton();
                 }
 
                 if (object["group-type"] == "recomendation") {
@@ -332,14 +322,7 @@ $(function () {
         }
 
         else if (event.target.className.includes("download_results") || $(".download_results").has(event.target).length) {
-            await PostDataToUrl("/recomendations-xlsx", storageData).then(response => {
-            })
-
-            let link = document.createElement('a');
-	        link.setAttribute('href', '/recomendations-xlsx');
-	        link.setAttribute('download', 'rec.xlsx');
-	        link.click();
-	        return false;
+            alert("Данная функция находится в разработке!");
         }
 
         else {
@@ -386,10 +369,19 @@ function hideNextButton() {
 }
 
 function animateNextButton() {
-    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${current.question + 1 > questionsCount ? "Завершить" : "Далее"}</span><i class=\"icon fi fi-rr-arrow-small-right\"></i></div>`);
+    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${current.question + 1 > questionsCount ? "Завершить" : "Далее"}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
     $(".next").animate({ opacity: 1 }, {
         duration: "fast", easing: "linear", done: function () {
             $(".next").css({ transition: "300ms" });
+        }, queue: false
+    });
+}
+
+function showBackButton() {
+    $("#buttons").append(`<div class=\"first_button back\" onclick=\"\"><i class=\"icon fi fi-br-arrow-small-left\"></i><span>Назад</span></div>`);
+    $(".back").animate({ opacity: 1 }, {
+        duration: "fast", easing: "linear", done: function () {
+            $(".back").css({ transition: "300ms" });
         }, queue: false
     });
 }
