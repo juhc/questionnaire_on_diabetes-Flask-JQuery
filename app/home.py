@@ -1,10 +1,8 @@
-from flask import Blueprint, render_template, request, jsonify, send_file, url_for
+from flask import Blueprint, render_template, request, jsonify, send_file
 from .models import Question, Answer, Group, Recomendations, Results
 from . import db
 import json
 import openpyxl
-import os
-import time
 import io
 
 
@@ -314,20 +312,10 @@ def get_results():
     )
 
 
-@home.route("/recomendations-xlsx", methods=["POST", "GET"])
+@home.route("/recomendations-xlsx")
 def get_recomendations_xlsx():
-    # if request.method == "POST":
-    #     time.sleep(1)
-    #     name = json.loads(request.data)["filename"]
-    #     filename = Path(Path.cwd() / "app" / "tmp" / "".join((name, ".xlsx")))
-    #     os.remove(filename)
-    #     return jsonify({})
-
     buffer = io.BytesIO()
     answers = json.loads(request.args.get("answers"))
-    # filename = Path(
-    #     Path.cwd() / "app" / "tmp" / "".join((request.args.get("name"), ".xlsx"))
-    # )
     book = get_recomendations_file(answers)
     book.save(buffer)
     buffer.seek(0)

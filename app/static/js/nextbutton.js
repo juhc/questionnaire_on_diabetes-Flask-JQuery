@@ -324,12 +324,10 @@ $(function () {
         
 
         else if (event.target.className.includes("download_results") || $(".download_results").has(event.target).length) {
-            let filename = uniqueID();
             let link = document.createElement("a");
-            link.setAttribute("href", `/recomendations-xlsx?name=${filename}&answers=${storageData}`);
+            link.setAttribute("href", `/recomendations-xlsx?answers=${storageData}`);
             link.setAttribute("download", "");
             link.click();
-            //await PostDataToUrl('/recomendations-xlsx', JSON.stringify({'filename': filename}))
             return false;
         }
 
@@ -416,8 +414,4 @@ function check(event) {
     });
 
     showOrHideNextButton(event);
-}
-
-function uniqueID() {
-    return Math.floor(Math.random() * Date.now()).toString()
 }
