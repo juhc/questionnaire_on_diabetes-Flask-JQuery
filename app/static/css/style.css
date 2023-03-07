@@ -33,7 +33,7 @@
         row-gap: 30px;
     }
 
-    #question {
+    #question, .recomendation, #the_end {
         font-size: 24px;
     }
 
@@ -72,7 +72,7 @@
         row-gap: 30px;
     }
 
-    #question {
+    #question, .recomendation, #the_end {
         font-size: 22px;
     }
 
@@ -111,7 +111,7 @@
         row-gap: 30px;
     }
 
-    #question {
+    #question, .recomendation, #the_end {
         font-size: 22px;
     }
 
@@ -150,7 +150,7 @@
         row-gap: 20px;
     }
 
-    #question {
+    #question, .recomendation, #the_end {
         font-size: 20px;
     }
 
@@ -359,18 +359,22 @@ form {
     min-height: 200px;
 }
 
-#question, .recomendation {
+#question, .recomendation, #the_end {
     margin: 0;
     text-align: center;
 }
 
-#answer_options, .recomendation_text {
+#answer_options, .recomendation_text, #the_end_text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     flex-wrap: wrap;
     row-gap: 10px;
+}
+
+.recomendation_text p, #the_end_text p {
+    margin: 0;
 }
 
 #content fieldset {
@@ -477,7 +481,6 @@ input[type="checkbox"]:checked+label::before {
 }
 
 #buttons {
-    width: 100%;
     min-height: 50px;
     display: flex;
     flex-direction: row;
