@@ -1,20 +1,17 @@
 const linkGetRecomendations = '/get-recomendations';
-const linkGetRisks = '/get-risks'
-let tests = 0;
-let questions = { count: 0 };
-var expire = new Date();
-expire.setMonth(expire.getMonth() + 1);
-let inputId = null;
+const linkGetRisks = '/get-risks';
+const linkGetTestCount = '/get-tests-count';
 
 function fillForm(data, type, question) {
     $("section").children().remove();
 
-    if (type == "question") {
+    if (type == "text") {
+        $("section").append(`<div id=\"introduction_text\">${data}</div><div id=\"buttons\"></div>`);   
+    }
+    else if (type == "question") {
         let questionData = data[question];
 
-        $("section").append("<h1 id=\"question\"></h1><div id=\"answer_options\"></div><div id=\"buttons\"></div>");
-        $("#question").html(questionData.text);
-        $("#answer_options").addClass(questionData.type);
+        $("section").append(`<h1 id=\"question\">${questionData.text}</h1><div id=\"answer_options\" class=\"${questionData.type}\"></div><div id=\"buttons\"></div>`);
 
         if (questionData.type == "textbox") {
             for (let i = 0; i < questionData.answers.length; i++) {
@@ -31,7 +28,7 @@ function fillForm(data, type, question) {
                 if (questionData.answers[i].type != null) {
                     $(`.group${i + 1}`).append(`<input id=\"${questionData.type}${i + 1}\" class=\"with_input\" type=\"${questionData.type}\" name=\"group\">`);
                     $(`.group${i + 1}`).append(`<label class=\"with_input\" for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
-                    inputId = i;
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[i].type}\" name=\"group\" ${object["data"][current.question].answers[i].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""} placeholder=\"Поле для ввода\">`));
                 }
                 else {
                     $(`.group${i + 1}`).append(`<input id=\"${questionData.type}${i + 1}\" type=\"${questionData.type}\" name=\"group\">`);
@@ -64,43 +61,24 @@ function fillForm(data, type, question) {
             recomendationsCount = Object.keys(recomendationData).length;
 
             for (let i = 0; i < recomendationsCount; i++) {
-                $("section").append(`<h1 class=\"recomendation\" id=\"recomendation${i + 1}\"></h1><div class=\"recomendation_text\" id=\"recomendation_text${i + 1}\"></div>`);
-                $(`#recomendation${i + 1}`).html(recomendationData[i + 1].title);
-                $(`#recomendation_text${i + 1}`).append(`<p>${recomendationData[i + 1].text}</p>`);
+                $("section").append(`<h1 class=\"recomendation\" id=\"recomendation${i + 1}\">${recomendationData[i + 1].title}</h1><div class=\"recomendation_text\" id=\"recomendation_text${i + 1}\"><p>${recomendationData[i + 1].text}</p></div>`);
             }
             $("section").append("<div id=\"buttons\"></div>");
         }
         else {
-            $("section").append("<h1 class=\"recomendation\"></h1><div class=\"recomendation_text\"></div><div id=\"buttons\"></div>");
-            $(".recomendation").html(recomendationData.title);
-            $(".recomendation_text").append(`<p>${recomendationData.text}</p>`);
+            $("section").append(`<h1 class=\"recomendation\">${recomendationData.title}</h1><div class=\"recomendation_text\"><p>${recomendationData.text}</p></div><div id=\"buttons\"></div>`);
         }
     }
-
-    calculateWidth();
-}
-
-function getDataFromCookie(key) {
-    var keys = document.cookie.split(';');
-    for (let k in keys) {
-        if (keys[k].split('=')[0] == key) {
-            return keys[k].split('=')[1]
-        }
-    }
-    return null
 }
 
 function getAnswersLocalStorage() {
     return JSON.parse(localStorage.getItem('answers'));
 }
 
-function setData(data, text, type, notion, answers) {
-    data = { 'text': text, 'type': type, 'notion': notion, 'answers': answers }
-}
-
 function setQuestionsArray(object, response) {
     object["data"] = response["data"];
     object["group-type"] = response["group-type"];
+    object["title"] = response["title"];
 }
 
 function getCurrent() {
@@ -109,14 +87,6 @@ function getCurrent() {
     if (current == null) {
         current = { test: 1, question: 1 };
         localStorage.setItem("current", JSON.stringify(current));
-    }
-
-    else {
-        for (let i = 0; i < current.test - 1; i++) {
-            $(tests[i]).addClass("completed");
-            $(tests[i]).children(".progress").children("span").html("100%");
-            $(tests[i]).children(".progressbar").css({ width: "100%" });
-        }
     }
 
     return current;
@@ -139,10 +109,6 @@ async function PostDataToUrl(url, data){
 
 function getLinkToGetQuestions(group) {
     return `/get-question?group=${group}`
-}
-
-function getQuestionsCount(questions, count) {
-    questions.count = count;
 }
 
 function SetResponse(response){

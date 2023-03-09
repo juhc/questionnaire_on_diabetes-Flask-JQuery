@@ -1,17 +1,21 @@
 let current = null;
-let object = { 'data': null, 'group-type': null }
+let object = { 'data': null, 'group-type': null, 'title': null }
 let isCompleted = null;
-let offset = 0;
 let step = 0;
 let questionsCount = 0;
 let obj_resp = { 'response': null }
 let storageData = null;
-let hasDiabet = false;
+let testsCount = 0;
 
 $(async function () {
     storageData = null;
+    await getDataFromUrl(linkGetTestCount).then(response => {
+        SetResponse(response);
+    });
 
-    if (tests.length) {
+    testsCount = obj_resp.response["count"];
+
+    if (testsCount) {
         isCompleted = false;
         current = getCurrent();
 
@@ -33,22 +37,22 @@ $(async function () {
 
         fillForm(object["data"], object["group-type"], current.question);
 
-        questionsCount = Object.keys(object["data"]).length;
+        if (object["group-type"] == "text") {
+            questionsCount = 1;
+        }
+        else {
+            questionsCount = Object.keys(object["data"]).length;
+        }
 
         if (questionsCount) {
             step = 100 / questionsCount;
             let progress = step * (current.question - 1);
             let intProgress = Math.round(progress);
-            offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
 
-            if ($("#tests_panel").scrollLeft() != offset) {
-                $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-            }
-
-            $("title").html($(tests[current.test - 1]).children(".name").children("span").html());
-            $(tests[current.test - 1]).addClass("current");
-            $(".current").children(".progress").children("span").html(`${intProgress}%`);
-            $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+            $("title").html(object["title"]);
+            $("#name").children("span").html(object["title"]);
+            $("#progress").children("span").html(`${intProgress}%`);
+            $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
             showContent();
 
@@ -56,7 +60,7 @@ $(async function () {
                 showBackButton();
             }
 
-            if (object["group-type"] == "recomendation") {
+            if (object["group-type"] == "recomendation" || object["group-type"] == "text") {
                 showNextButton();
             }
         }
@@ -65,19 +69,6 @@ $(async function () {
 
 $(function () {
     $("body").on("contextmenu", false);
-
-    $(window).resize(function () {
-        calculateWidth();
-
-        if (offset < testsWidth - panelWidth) {
-            offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
-        }
-        if (offset > testsWidth - panelWidth) {
-            offset = testsWidth - panelWidth;
-        }
-
-        $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-    });
 
     $(window).keydown(function (event) {
         if ($("#answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
@@ -124,10 +115,8 @@ $(function () {
             }
 
             if (event.target.className == "with_input") {
-                if (!$("label.with_input").children().length) {
+                if (!$("label.with_input").children("input").val()) {
                     hideNextButton();
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`).css({ opacity: 0 }));
-                    $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
                 $("input[type=\"number\"]").focus(function (e) {
@@ -139,15 +128,10 @@ $(function () {
                 });
             }
             else if (($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") && $(event.target).parent().hasClass("with_input")) {
+                $("input.with_input").prop("checked", true);
                 check(event);
             }
             else {
-                $("label.with_input > input").animate({ opacity: 0 }, {
-                    duration: "fast", easing: "linear", done: function () {
-                        $("label.with_input").children().remove();
-                    }, queue: false
-                });
-
                 if ($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") {
                     check(event);
                 }
@@ -196,15 +180,15 @@ $(function () {
                                 if (answersStorage[current.test])
                                     answersStorage[current.test][cur_q] = answers;
                                 else {
-                                    answersStorage[current.test] = {}
+                                    answersStorage[current.test] = {};
                                     answersStorage[current.test][cur_q] = answers;
                                 }
                                 localStorage.setItem('answers', JSON.stringify(answersStorage));
                             }
                             else {
                                 answersStorage = {};
-                                temp = {}
-                                temp[cur_q] = answers
+                                temp = {};
+                                temp[cur_q] = answers;
                                 answersStorage[current.test] = temp;
                                 localStorage.setItem('answers', JSON.stringify(answersStorage));
                             }
@@ -221,14 +205,12 @@ $(function () {
 
                 let progress = step * (current.question);
                 let intProgress = Math.round(progress);
-                $(".current").children(".progress").children("span").html(`${intProgress}%`);
-                $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+
+                $("#progress").children("span").html(`${intProgress}%`);
+                $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
                 if (current.question + 1 > questionsCount) {
-                    $(".current").addClass("completed");
-                    $(".current").removeClass("current");
-
-                    if (current.test + 1 > tests.length) {
+                    if (current.test + 1 > testsCount) {
                         $("title").html("Тестирование завершено!");
                         isCompleted = true;
                     }
@@ -253,18 +235,12 @@ $(function () {
 
                         if (questionsCount) {
                             step = 100 / questionsCount;
-                            $("title").html($(tests[current.test]).children(".name").children("span").html());
+                            intProgress = 0;
 
-                            if (offset < testsWidth - panelWidth) {
-                                offset = current.test * ($(tests[current.test]).width() + 20);
-                            }
-                            if (offset > testsWidth - panelWidth) {
-                                offset = testsWidth - panelWidth;
-                            }
-
-                            $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-
-                            $(tests[current.test]).addClass("current");
+                            $("title").html(object["title"]);
+                            $("#name").children("span").html(object["title"]);
+                            $("#progress").children("span").html(`${intProgress}%`);
+                            $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
                             current.test++;
                             current.question = 1;
@@ -294,17 +270,6 @@ $(function () {
             else {
                 fillForm(object["data"], object["group-type"], current.question);
 
-                if (offset < testsWidth - panelWidth) {
-                    offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
-                }
-                if (offset > testsWidth - panelWidth) {
-                    offset = testsWidth - panelWidth;
-                }
-
-                if ($("#tests_panel").scrollLeft() != offset) {
-                    $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-                }
-
                 showContent();
 
                 if (current.question != 1) {
@@ -332,7 +297,7 @@ $(function () {
         }
 
         else {
-            if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val())) {
+            if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && (!$("input[type=\"text\"]").val()) && !$("#answer_options").has($(".with_input")).length)) {
                 hideNextButton();
             }
         }
@@ -375,7 +340,7 @@ function hideNextButton() {
 }
 
 function animateNextButton() {
-    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${current.question + 1 > questionsCount ? "Завершить" : "Далее"}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
+    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${object["group-type"] == "text" ? "Начать" : (current.question + 1 > questionsCount ? "Завершить блок" : "Далее")}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
     $(".next").animate({ opacity: 1 }, {
         duration: "fast", easing: "linear", done: function () {
             $(".next").css({ transition: "300ms" });

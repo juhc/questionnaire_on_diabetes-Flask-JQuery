@@ -15,7 +15,8 @@ def create_app():
         Answer,
         Group,
         Recomendations,
-        Results
+        Results,
+        Texts
     )
 
     db.init_app(app)

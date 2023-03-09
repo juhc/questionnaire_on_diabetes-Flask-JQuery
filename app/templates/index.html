@@ -9,30 +9,19 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.js"></script>
-        <script src="{{url_for('static', filename='js/scrollbuttons.js')}}"></script>
         <script src="{{url_for('static', filename='js/fill_form.js')}}"></script>
         <script src="{{url_for('static', filename='js/nextbutton.js')}}"></script>
     </head>
     <body>
         <form>
-            <div class="left button">
-                <i class="icon fi fi-rr-angle-left"></i>
-            </div>
-            <div class="right button">
-                <i class="icon fi fi-rr-angle-right"></i>
-            </div>
-            <div id="tests_panel">
-                {% for test in tests %}
-                <div class="test">
-                    <div class="name">
-                        <span title="{{test}}">{{test}}</span>
-                    </div>
-                    <div class="progress">
-                        <span>0%</span>
-                    </div>
-                    <div class="progressbar"></div>
+            <div id="test">
+                <div id="name">
+                    <span></span>
                 </div>
-                {% endfor %}
+                <div id="progress">
+                    <span></span>
+                </div>
+                <div id="progressbar"></div>
             </div>
             <div id="content">
                 <section></section>
