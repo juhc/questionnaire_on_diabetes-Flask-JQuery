@@ -4,11 +4,9 @@ let isCompleted = null;
 let step = 0;
 let questionsCount = 0;
 let obj_resp = { 'response': null }
-let storageData = null;
 let testsCount = 0;
 
 $(async function () {
-    storageData = null;
     await getDataFromUrl(linkGetTestCount).then(response => {
         SetResponse(response);
     });
@@ -28,16 +26,34 @@ $(async function () {
             })
         }
         else if (obj_resp.response == 'risks') {
-            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
+            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => { 
                 SetResponse(response)
             })
         }
+        else if (obj_resp.response == 'results') {
+            await PostDataToUrl(linkGetResults, localStorage.getItem('answers')).then(response => { 
+                SetResponse(JSON.parse(response))
+            })
+        }
+
+        if (obj_resp.response == "skip") {
+            current.test++;
+
+            await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
+                SetResponse(response)
+            });
+            if (obj_resp.response == 'recomendations') {
+                await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
+                    SetResponse(response)
+                })
+            }
+        }
 
         setQuestionsArray(object, obj_resp.response);
-
+        
         fillForm(object["data"], object["group-type"], current.question);
 
-        if (object["group-type"] == "text") {
+        if (object["group-type"] == "introduction" || object["group-type"] == "results" || object["group-type"] == "conclusion") {
             questionsCount = 1;
         }
         else {
@@ -51,8 +67,11 @@ $(async function () {
 
             $("title").html(object["title"]);
             $("#name").children("span").html(object["title"]);
-            $("#progress").children("span").html(`${intProgress}%`);
-            $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+            
+            if (object["group-type"] != "conclusion") {
+                $("#progress").children("span").html(`${intProgress}%`);
+                $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+            }
 
             showContent();
 
@@ -60,8 +79,17 @@ $(async function () {
                 showBackButton();
             }
 
-            if (object["group-type"] == "recomendation" || object["group-type"] == "text") {
+            if (object["group-type"] == "recomendation" || object["group-type"] == "introduction" || object["group-type"] == "results") {
                 showNextButton();
+            }
+            else if (object["group-type"] == "conclusion") {
+                $("#buttons").append("<div class=\"third_button reload\" onclick=\"\"><i class=\"icon fi fi-br-rotate-right\"></i><span>Начать сначала</span></div>");
+                $("#buttons").append("<div class=\"forth_button download_results\" onclick=\"\"><span>Скачать рекомендации</span><i class=\"icon fi fi-br-download\"></i></div>");
+                $(".reload, .download_results").animate({ opacity: 1 }, {
+                    duration: "fast", easing: "linear", done: function () {
+                        $(".reload, .download_results").css({ transition: "300ms" });
+                    }, queue: false
+                });            
             }
         }
     }
@@ -71,7 +99,7 @@ $(function () {
     $("body").on("contextmenu", false);
 
     $(window).keydown(function (event) {
-        if ($("#answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
+        if ($(".answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
             if (!isFinite(event.key) && event.key != "Delete" && event.key != "Backspace") {
                 return false;
             }
@@ -86,7 +114,7 @@ $(function () {
     });
 
     $(window).keypress(function (event) {
-        if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
+        if (($(".answer_options").has($("input[type=\"number\"]")).length || $(".answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
             return false;
         }
         if ($("#buttons").children(".second_button").hasClass("next") && event.key == "Enter") {
@@ -96,7 +124,7 @@ $(function () {
 
     $(window).click(async function (event) {
         if (event.target.tagName == "INPUT") {
-            if ($("#answer_options").hasClass("checkbox")) {
+            if ($(".answer_options").hasClass("checkbox")) {
                 let checked = $("input:checked");
                 if ($(event.target).parent().has("label:contains(\"Нет\")").length) {
                     for (let i = 0; i < checked.length; i++) {
@@ -206,12 +234,13 @@ $(function () {
                 let progress = step * (current.question);
                 let intProgress = Math.round(progress);
 
-                $("#progress").children("span").html(`${intProgress}%`);
-                $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+                if (object["group-type"] != "conclusion") {
+                    $("#progress").children("span").html(`${intProgress}%`);
+                    $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+                }
 
                 if (current.question + 1 > questionsCount) {
                     if (current.test + 1 > testsCount) {
-                        $("title").html("Тестирование завершено!");
                         isCompleted = true;
                     }
                     else {
@@ -224,14 +253,37 @@ $(function () {
                             })
                         }
                         else if (obj_resp.response == 'risks') {
-                            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
+                            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => { 
                                 SetResponse(response)
                             })
+                        }
+                        else if (obj_resp.response == 'results') {
+                            await PostDataToUrl(linkGetResults, localStorage.getItem('answers')).then(response => { 
+                                SetResponse(JSON.parse(response))
+                            })
+                        }
+
+                        if (obj_resp.response == "skip") {
+                            current.test++;
+
+                            await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
+                                SetResponse(response)
+                            });
+                            if (obj_resp.response == 'recomendations') {
+                                await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
+                                    SetResponse(response)
+                                })
+                            }
                         }
 
                         setQuestionsArray(object, obj_resp.response);
 
-                        questionsCount = Object.keys(object["data"]).length;
+                        if (object["group-type"] == "introduction" || object["group-type"] == "results" || object["group-type"] == "conclusion") {
+                            questionsCount = 1;
+                        }
+                        else {
+                            questionsCount = Object.keys(object["data"]).length;
+                        }
 
                         if (questionsCount) {
                             step = 100 / questionsCount;
@@ -239,8 +291,11 @@ $(function () {
 
                             $("title").html(object["title"]);
                             $("#name").children("span").html(object["title"]);
-                            $("#progress").children("span").html(`${intProgress}%`);
-                            $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+
+                            if (object["group-type"] != "conclusion") {
+                                $("#progress").children("span").html(`${intProgress}%`);
+                                $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+                            }
 
                             current.test++;
                             current.question = 1;
@@ -254,52 +309,44 @@ $(function () {
                 }
             }
 
-            if (isCompleted) {
-                storageData = localStorage.getItem("answers");
-                localStorage.clear();
-                showContent();
-                $("section").append("<h1 id=\"the_end\">Тестирование завершено!</h1><div id=\"the_end_text\"><p>Благодарим Вас за уделённое время</p></div><div id=\"buttons\"></div>");
+            fillForm(object["data"], object["group-type"], current.question);
+            
+            showContent();
+
+            if (current.question != 1) {
+                showBackButton();
+            }
+
+            if (object["group-type"] == "recomendation" || object["group-type"] == "results") {
+                showNextButton();
+            }
+
+            if (object["group-type"] == "conclusion") {
                 $("#buttons").append("<div class=\"third_button reload\" onclick=\"\"><i class=\"icon fi fi-br-rotate-right\"></i><span>Начать сначала</span></div>");
                 $("#buttons").append("<div class=\"forth_button download_results\" onclick=\"\"><span>Скачать рекомендации</span><i class=\"icon fi fi-br-download\"></i></div>");
                 $(".reload, .download_results").animate({ opacity: 1 }, {
                     duration: "fast", easing: "linear", done: function () {
                         $(".reload, .download_results").css({ transition: "300ms" });
                     }, queue: false
-                });
+                });            
             }
-            else {
-                fillForm(object["data"], object["group-type"], current.question);
-
-                showContent();
-
-                if (current.question != 1) {
-                    showBackButton();
-                }
-
-                if (object["group-type"] == "recomendation") {
-                    showNextButton();
-                }
-            }
-
         }
 
         else if (event.target.className.includes("reload") || $(".reload").has(event.target).length) {
+            localStorage.clear();
             location.reload();
         }
         
-
         else if (event.target.className.includes("download_results") || $(".download_results").has(event.target).length) {
             let link = document.createElement("a");
-            link.setAttribute("href", `/recomendations-xlsx?answers=${storageData}`);
+            link.setAttribute("href", `/recomendations-xlsx?answers=${localStorage.getItem("answers")}`);
             link.setAttribute("download", "");
             link.click();
             return false;
         }
 
-        else {
-            if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && (!$("input[type=\"text\"]").val()) && !$("#answer_options").has($(".with_input")).length)) {
-                hideNextButton();
-            }
+        else if (($(".answer_options").has($("input[type=\"number\"]")).length || $(".answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && (!$("input[type=\"text\"]").val()) && !$(".answer_options").has($(".with_input")).length)) {
+            hideNextButton();
         }
     });
 })
@@ -340,7 +387,7 @@ function hideNextButton() {
 }
 
 function animateNextButton() {
-    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${object["group-type"] == "text" ? "Начать" : (current.question + 1 > questionsCount ? "Завершить блок" : "Далее")}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
+    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${object["group-type"] == "introduction" ? "Начать" : (current.question + 1 > questionsCount ? "Завершить блок" : "Далее")}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
     $(".next").animate({ opacity: 1 }, {
         duration: "fast", easing: "linear", done: function () {
             $(".next").css({ transition: "300ms" });

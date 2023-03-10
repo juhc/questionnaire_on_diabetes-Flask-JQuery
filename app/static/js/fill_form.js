@@ -1,21 +1,58 @@
 const linkGetRecomendations = '/get-recomendations';
 const linkGetRisks = '/get-risks';
 const linkGetTestCount = '/get-tests-count';
+const linkGetResults = '/get-results';
 
 function fillForm(data, type, question) {
     $("section").children().remove();
 
-    if (type == "text") {
-        $("section").append(`<div id=\"introduction_text\">${data}</div><div id=\"buttons\"></div>`);   
+    if (type == "introduction" || type == "conclusion") {
+        $("section").append(`<div id=\"text\">${data}</div><div id=\"buttons\"></div>`);   
+    }
+    else if (type == "results") {
+        let resultData = data[question];
+
+        resultsCount = Object.keys(resultData).length;
+
+        $("section").append(`<h1 class=\"question\" id=\"question${1}\">${resultData[1].text}</h1><div class=\"answer_options\" id=\"answer_options${1}\"></div>`);
+        
+        if (resultData[1].answers.join(", ") == resultData[1].correct.join(", ")) {
+            $(`#answer_options${1}`).append(`<p>Ваш ответ: <span class=\"green\">${resultData[1].answers.join(", ")}</span></p>`);
+        }
+        else {
+            $(`#answer_options${1}`).append(`<p>Ваш ответ: <span class=\"red\">${resultData[1].answers.join(", ")}</span></p>`);
+            $(`#answer_options${1}`).append(`<p>Правильный ответ: <span class=\"green\">${resultData[1].correct.join(", ")}</span></p>`);
+        }
+
+        if (resultData[1].notion != null) {
+            $(`#answer_options${1}`).append(`<fieldset><span>${resultData[1].notion}</span></fieldset>`);
+        }
+
+        for (let i = 1; i < resultsCount; i++) {
+            $("section").append(`<hr><h1 class=\"question\" id=\"question${i + 1}\">${resultData[i + 1].text}</h1><div class=\"answer_options\" id=\"answer_options${i + 1}\"></div>`);
+
+            if (resultData[i + 1].answers.join(", ") == resultData[i + 1].correct.join(", ")) {
+                $(`#answer_options${i + 1}`).append(`<p>Ваш ответ: <span class=\"green\">${resultData[i + 1].answers.join(", ")}</span></p>`);
+            }
+            else {
+                $(`#answer_options${i + 1}`).append(`<p>Ваш ответ: <span class=\"red\">${resultData[i + 1].answers.join(", ")}</span></p>`);
+                $(`#answer_options${i + 1}`).append(`<p>Правильный ответ: <span class=\"green\">${resultData[i + 1].correct.join(", ")}</span></p>`);
+            }
+
+            if (resultData[i + 1].notion != null) {
+                $(`#answer_options${i + 1}`).append(`<fieldset><span>${resultData[i + 1].notion}</span></fieldset>`);
+            }
+        }
+        $("section").append("<div id=\"buttons\"></div>");
     }
     else if (type == "question") {
         let questionData = data[question];
 
-        $("section").append(`<h1 id=\"question\">${questionData.text}</h1><div id=\"answer_options\" class=\"${questionData.type}\"></div><div id=\"buttons\"></div>`);
+        $("section").append(`<h1 class=\"question\">${questionData.text}</h1><div class=\"answer_options ${questionData.type}\"></div><div id=\"buttons\"></div>`);
 
         if (questionData.type == "textbox") {
             for (let i = 0; i < questionData.answers.length; i++) {
-                $("#answer_options").append(`<div class=\"group${i + 1}\"></div>`)
+                $(".answer_options").append(`<div class=\"group${i + 1}\"></div>`)
                 if (questionData.answers[i].text != null) {
                     $(`.group${i + 1}`).append(`<label for=\"${questionData.answers[i].type}${i + 1}\">${questionData.answers[i].text}</label>`)
                 }
@@ -24,25 +61,17 @@ function fillForm(data, type, question) {
         }
         else {
             for (let i = 0; i < questionData.answers.length; i++) {
-                $("#answer_options").append(`<div class=\"group${i + 1}\"></div>`)
+                $(".answer_options").append(`<div class=\"group${i + 1}\"></div>`)
                 if (questionData.answers[i].type != null) {
                     $(`.group${i + 1}`).append(`<input id=\"${questionData.type}${i + 1}\" class=\"with_input\" type=\"${questionData.type}\" name=\"group\">`);
                     $(`.group${i + 1}`).append(`<label class=\"with_input\" for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[i].type}\" name=\"group\" ${object["data"][current.question].answers[i].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""} placeholder=\"Поле для ввода\">`));
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[i].type}\" name=\"group\" ${object["data"][current.question].answers[i].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`));
                 }
                 else {
                     $(`.group${i + 1}`).append(`<input id=\"${questionData.type}${i + 1}\" type=\"${questionData.type}\" name=\"group\">`);
                     $(`.group${i + 1}`).append(`<label for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
                 }
             }
-        }
-
-        $("fieldset").remove();
-
-        if (questionData.notion != null) {
-            termin = JSON.parse(questionData.notion)['termin']
-            notion = JSON.parse(questionData.notion)['notion']
-            $("#content").append(`<fieldset><legend id=\"term\">${termin}</legend><span>${notion}</span></fieldset>`);
         }
 
         $("input[type=\"number\"]").focus(function(event) {
@@ -52,7 +81,6 @@ function fillForm(data, type, question) {
         $("input[type=\"text\"]").focus(function(event) {
             $(event.target).trigger("click");
         });
-
     }
     else {
         let recomendationData = data[question];
@@ -60,8 +88,10 @@ function fillForm(data, type, question) {
         if (recomendationData[1]) {
             recomendationsCount = Object.keys(recomendationData).length;
 
-            for (let i = 0; i < recomendationsCount; i++) {
-                $("section").append(`<h1 class=\"recomendation\" id=\"recomendation${i + 1}\">${recomendationData[i + 1].title}</h1><div class=\"recomendation_text\" id=\"recomendation_text${i + 1}\"><p>${recomendationData[i + 1].text}</p></div>`);
+            $("section").append(`<h1 class=\"recomendation\" id=\"recomendation${1}\">${recomendationData[1].title}</h1><div class=\"recomendation_text\" id=\"recomendation_text${1}\"><p>${recomendationData[1].text}</p></div>`);
+
+            for (let i = 1; i < recomendationsCount; i++) {
+                $("section").append(`<hr><h1 class=\"recomendation\" id=\"recomendation${i + 1}\">${recomendationData[i + 1].title}</h1><div class=\"recomendation_text\" id=\"recomendation_text${i + 1}\"><p>${recomendationData[i + 1].text}</p></div>`);
             }
             $("section").append("<div id=\"buttons\"></div>");
         }

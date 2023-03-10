@@ -3,7 +3,7 @@ from .models import Question, Answer, Group, Recomendations, Results, Texts
 from . import db
 from config import Config
 from collections import OrderedDict
-import json, openpyxl, io
+import json, openpyxl, io, fpdf
 
 home = Blueprint("home", __name__)
 
@@ -16,22 +16,15 @@ def index():
 
 @home.route("/test")
 def test():
-    answers = {
-        "2": {
-            "1": ["1"],
-            "2": ["45"],
-            "3": ["asd"],
-            "4": ["2"],
-            "5": ["170"],
-            "6": ["60"],
-            "7": ["94"],
-            "8": ["4"],
-            "9": ["4"],
-            "10": ["3"],
-        },
-        "3": {"1": ["1"], "2": ["1"], "3": ["2"], "4": ["2"], "5": ["2"]},
-    }
-    return jsonify(get_points_on_questions(answers))
+    pdf = get_recomendations_pdf({"1": "1", "2": "1", "3": 0, "4": 10000.0, "5": 3, "6": "1", "7": "gjrtugjro", "8": "1", "9": "1", "10": "1", "11": 0, "12": 0, "13": "6", "14": "6", "15": "4", "16": "1", "17": 0, "18": "1", "19": 0, "20": "1", "21": 0, "22": "1", "23": 0, "24": "1", "25": 0, "26": 3, "27": 0, "28": 1, "29": 1, "30": 1, "31": 1, "32": 1, "33": 1, "34": 1, "35": 1, "36": 1, "37": 1, "38": 1, "39": 1, "40": 1, "41": 1, "42": 1, "43": 1, "44": 1, "45": 1, "46": 1, "47": 1, "48": 1, "49": 1, "50": 1, "51": 1, "52": 1, "53": 1, "54": 1, "55": 1, "56": 1, "57": 1, "58": 1, "59": 5, "60": 1, "61": 1, "62": 37, "63": 3, "64": 1, "65": 1, "66": 1, "67": 1, "68": 0, "69": 0, "70": 0, "71": 0, "72": 0, "73": 0, "74": 0, "75": 0, "76": 0, "77": 0, "78": 1, "79": 5, "80": 0, "81": 1, "82": 0})
+    buffer = io.BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        download_name="Результаты.pdf",
+        as_attachment=True,
+    )
 
 
 @home.route("/get-question", methods=["GET", "POST"])
@@ -48,6 +41,7 @@ def get_question_by_id():
                 "text": get_text_data,
                 "risk": "risks",
                 "recomendation": "recomendations",
+                "results": "results",
             }
             response = responese_by_type[group.type]
             response = response(group.id) if hasattr(response, "__call__") else response
@@ -55,18 +49,51 @@ def get_question_by_id():
         return jsonify(response)
 
 
+@home.route("/get-results", methods=["POST"])
+def get_info_results():
+    answers = json.loads(request.data)
+    group = Group.query.filter_by(name=Config.INFO).first()
+    questions = group.questions
+    correct_answers = get_correct_answers()
+    response = {}
+    answers = answers[str(group.id)]
+
+    for answer in answers:
+        response[answer] = {
+            "text": questions[int(answer) - 1].text,
+            "answers": [
+                questions[int(answer) - 1].answers[int(a) - 1].text
+                for a in answers[answer]
+            ],
+            "correct": correct_answers[int(answer)],
+            "notion": questions[int(answer) - 1].notion
+        }
+    response = {
+        "group-type": "results",
+        "data": {"1": response},
+        "title": "Результаты",
+    }
+
+    return jsonify(json.dumps(response))
+
+
 @home.route("/get-recomendations", methods=["POST"])
 def get_recomendations():
     answers = json.loads(request.data)
     response = recomendation_data(answers)
+    save_result_to_db(answers)
     return jsonify(response)
 
 
 @home.route("/get-risks", methods=["POST"])
 def get_risks():
+    group_id = Group.query.filter_by(name=Config.PASSPORT).first().id
+    question = Question.query.filter_by(
+        text="Был ли у Вас установлен диагноз «сахарный диабет» ранее?"
+    ).first()
     answers = json.loads(request.data)
-    response = risks_data(answers)
-    save_result_to_db(answers)
+    check_sd = question.answers[int(answers[str(group_id)][str(question.id)][0]) - 1]
+    response = "skip" if "Да" in check_sd.text else risks_data(answers)
     return jsonify(response)
 
 
@@ -387,11 +414,10 @@ def save_result_to_db(answers):
     for test in answers:
         questions = Group.query.get(int(test)).questions
         test_answers = answers[test]
-        print(test_answers)
         for q_num in test_answers:
-            question = questions[int(q_num)-1]
+            question = questions[int(q_num) - 1]
             if int(test) == 4:
-                result[i] = question.answers[int(test_answers[q_num][0])-1].point
+                result[i] = question.answers[int(test_answers[q_num][0]) - 1].point
             elif int(test) == 5:
                 if question.type == "checkbox":
                     for a in test_answers[q_num]:
@@ -519,12 +545,27 @@ def save_results_to_excel():
 
     for row, result in enumerate(results, start=2):
         data = json.loads(result.data)
-        print(data)
         for key in data:
             sheet.cell(row=row, column=int(key)).value = data[key]
 
     return book
 
+
+def get_recomendations_pdf(answers):
+    pdf = fpdf.FPDF()
+    pdf.add_page()
+    pdf.set_xy(0, 0)
+    pdf.set_font('arial', 'B', 13.0)
+    pdf.cell(ln=1, h=5.0, align='C', w=0, txt="Hello", border=0)
+    pdf.cell(ln=1, h=5.0, align='C', w=0, txt="Hello", border=0)
+    a = 'askdflsdjf'
+    pdf.cell(ln=1, h=5.0, align='C', w=0, txt=a, border=0)
+
+    #recomendations = recomendation_data(answers)["data"]
+    # for i, v in enumerate(recomendations, start=1):
+    #     pdf.cell(ln=0, h=5.0, align='C', w=0, txt=v, border=0)
+
+    return pdf
 
 def generate_titles_excel():
     groups = Group.query.filter_by(type="question").all()
@@ -576,24 +617,45 @@ def get_titles_excel(group, title, optional=[]):
 
 
 def get_recomendations_file(answers):
+    group_id = Group.query.filter_by(name=Config.PASSPORT).first().id
+    question = Question.query.filter_by(
+        text="Был ли у Вас установлен диагноз «сахарный диабет» ранее?"
+    ).first()
+    check_sd = question.answers[int(answers[str(group_id)][str(question.id)][0]) - 1]
+    
     recomendations = recomendation_data(answers)["data"]
     book = openpyxl.Workbook()
     sheet = book.active
     for i, v in enumerate(recomendations, start=1):
         sheet.cell(row=i, column=1).value = recomendations[v]["text"]
 
-    risks = risks_data(answers)["data"]["1"]
-    for row, key in enumerate(risks, start=len(recomendations) + 2):
-        sheet.cell(row=row, column=1).value = risks[key]["title"]
-        sheet.cell(row=row, column=2).value = risks[key]["text"]
-    return book
+    if not "Да" in check_sd.text:
+        risks = risks_data(answers)["data"]["1"]
+        for row, key in enumerate(risks, start=len(recomendations) + 2):
+            sheet.cell(row=row, column=1).value = risks[key]["title"]
+            sheet.cell(row=row, column=2).value = risks[key]["text"]
+    return book 
 
 
 def get_text_data(group_id):
+    group_type = "introduction" if group_id == 1 else "conclusion"
     response = {
-        "group-type": "text",
+        "group-type": group_type,
         "data": Texts.query.filter_by(group_id=group_id).first().text,
         "title": Group.query.get(group_id).name,
     }
 
     return response
+
+
+def get_correct_answers():
+    result = {}
+    questions, _ = get_questions_and_answers_by_group(Config.INFO)
+
+    for index, question in enumerate(questions, start=1):
+        if question.correct_answer_id:
+            result[index] = [Answer.query.get(question.correct_answer_id).text]
+        else:
+            result[index] = [a.text for a in question.answers]
+
+    return result
