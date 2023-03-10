@@ -1,17 +1,19 @@
 let current = null;
-let object = { 'data': null, 'group-type': null }
+let object = { 'data': null, 'group-type': null, 'title': null }
 let isCompleted = null;
-let offset = 0;
 let step = 0;
 let questionsCount = 0;
 let obj_resp = { 'response': null }
-let storageData = null;
-let hasDiabet = false;
+let testsCount = 0;
 
 $(async function () {
-    storageData = null;
+    await getDataFromUrl(linkGetTestCount).then(response => {
+        SetResponse(response);
+    });
 
-    if (tests.length) {
+    testsCount = obj_resp.response["count"];
+
+    if (testsCount) {
         isCompleted = false;
         current = getCurrent();
 
@@ -24,31 +26,52 @@ $(async function () {
             })
         }
         else if (obj_resp.response == 'risks') {
-            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
+            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => { 
                 SetResponse(response)
             })
         }
+        else if (obj_resp.response == 'results') {
+            await PostDataToUrl(linkGetResults, localStorage.getItem('answers')).then(response => { 
+                SetResponse(JSON.parse(response))
+            })
+        }
+
+        if (obj_resp.response == "skip") {
+            current.test++;
+
+            await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
+                SetResponse(response)
+            });
+            if (obj_resp.response == 'recomendations') {
+                await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
+                    SetResponse(response)
+                })
+            }
+        }
 
         setQuestionsArray(object, obj_resp.response);
-
+        
         fillForm(object["data"], object["group-type"], current.question);
 
-        questionsCount = Object.keys(object["data"]).length;
+        if (object["group-type"] == "introduction" || object["group-type"] == "results" || object["group-type"] == "conclusion") {
+            questionsCount = 1;
+        }
+        else {
+            questionsCount = Object.keys(object["data"]).length;
+        }
 
         if (questionsCount) {
             step = 100 / questionsCount;
             let progress = step * (current.question - 1);
             let intProgress = Math.round(progress);
-            offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
 
-            if ($("#tests_panel").scrollLeft() != offset) {
-                $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
+            $("title").html(object["title"]);
+            $("#name").children("span").html(object["title"]);
+            
+            if (object["group-type"] != "conclusion") {
+                $("#progress").children("span").html(`${intProgress}%`);
+                $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
             }
-
-            $("title").html($(tests[current.test - 1]).children(".name").children("span").html());
-            $(tests[current.test - 1]).addClass("current");
-            $(".current").children(".progress").children("span").html(`${intProgress}%`);
-            $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
 
             showContent();
 
@@ -56,8 +79,17 @@ $(async function () {
                 showBackButton();
             }
 
-            if (object["group-type"] == "recomendation") {
+            if (object["group-type"] == "recomendation" || object["group-type"] == "introduction" || object["group-type"] == "results") {
                 showNextButton();
+            }
+            else if (object["group-type"] == "conclusion") {
+                $("#buttons").append("<div class=\"third_button reload\" onclick=\"\"><i class=\"icon fi fi-br-rotate-right\"></i><span>Начать сначала</span></div>");
+                $("#buttons").append("<div class=\"forth_button download_results\" onclick=\"\"><span>Скачать рекомендации</span><i class=\"icon fi fi-br-download\"></i></div>");
+                $(".reload, .download_results").animate({ opacity: 1 }, {
+                    duration: "fast", easing: "linear", done: function () {
+                        $(".reload, .download_results").css({ transition: "300ms" });
+                    }, queue: false
+                });            
             }
         }
     }
@@ -66,21 +98,8 @@ $(async function () {
 $(function () {
     $("body").on("contextmenu", false);
 
-    $(window).resize(function () {
-        calculateWidth();
-
-        if (offset < testsWidth - panelWidth) {
-            offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
-        }
-        if (offset > testsWidth - panelWidth) {
-            offset = testsWidth - panelWidth;
-        }
-
-        $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-    });
-
     $(window).keydown(function (event) {
-        if ($("#answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
+        if ($(".answer_options").has("input[type=\"number\"]").length && event.key != "Enter") {
             if (!isFinite(event.key) && event.key != "Delete" && event.key != "Backspace") {
                 return false;
             }
@@ -95,7 +114,7 @@ $(function () {
     });
 
     $(window).keypress(function (event) {
-        if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
+        if (($(".answer_options").has($("input[type=\"number\"]")).length || $(".answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
             return false;
         }
         if ($("#buttons").children(".second_button").hasClass("next") && event.key == "Enter") {
@@ -105,7 +124,7 @@ $(function () {
 
     $(window).click(async function (event) {
         if (event.target.tagName == "INPUT") {
-            if ($("#answer_options").hasClass("checkbox")) {
+            if ($(".answer_options").hasClass("checkbox")) {
                 let checked = $("input:checked");
                 if ($(event.target).parent().has("label:contains(\"Нет\")").length) {
                     for (let i = 0; i < checked.length; i++) {
@@ -124,10 +143,8 @@ $(function () {
             }
 
             if (event.target.className == "with_input") {
-                if (!$("label.with_input").children().length) {
+                if (!$("label.with_input").children("input").val()) {
                     hideNextButton();
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[inputId].type}\" name=\"group\" ${object["data"][current.question].answers[inputId].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`).css({ opacity: 0 }));
-                    $("label.with_input > input").animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
                 }
 
                 $("input[type=\"number\"]").focus(function (e) {
@@ -139,15 +156,10 @@ $(function () {
                 });
             }
             else if (($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") && $(event.target).parent().hasClass("with_input")) {
+                $("input.with_input").prop("checked", true);
                 check(event);
             }
             else {
-                $("label.with_input > input").animate({ opacity: 0 }, {
-                    duration: "fast", easing: "linear", done: function () {
-                        $("label.with_input").children().remove();
-                    }, queue: false
-                });
-
                 if ($(event.target).attr("type") == "number" || $(event.target).attr("type") == "text") {
                     check(event);
                 }
@@ -196,15 +208,15 @@ $(function () {
                                 if (answersStorage[current.test])
                                     answersStorage[current.test][cur_q] = answers;
                                 else {
-                                    answersStorage[current.test] = {}
+                                    answersStorage[current.test] = {};
                                     answersStorage[current.test][cur_q] = answers;
                                 }
                                 localStorage.setItem('answers', JSON.stringify(answersStorage));
                             }
                             else {
                                 answersStorage = {};
-                                temp = {}
-                                temp[cur_q] = answers
+                                temp = {};
+                                temp[cur_q] = answers;
                                 answersStorage[current.test] = temp;
                                 localStorage.setItem('answers', JSON.stringify(answersStorage));
                             }
@@ -221,15 +233,14 @@ $(function () {
 
                 let progress = step * (current.question);
                 let intProgress = Math.round(progress);
-                $(".current").children(".progress").children("span").html(`${intProgress}%`);
-                $(".current").children(".progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+
+                if (object["group-type"] != "conclusion") {
+                    $("#progress").children("span").html(`${intProgress}%`);
+                    $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
+                }
 
                 if (current.question + 1 > questionsCount) {
-                    $(".current").addClass("completed");
-                    $(".current").removeClass("current");
-
-                    if (current.test + 1 > tests.length) {
-                        $("title").html("Тестирование завершено!");
+                    if (current.test + 1 > testsCount) {
                         isCompleted = true;
                     }
                     else {
@@ -242,29 +253,49 @@ $(function () {
                             })
                         }
                         else if (obj_resp.response == 'risks') {
-                            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => {
+                            await PostDataToUrl(linkGetRisks, localStorage.getItem('answers')).then(response => { 
                                 SetResponse(response)
                             })
+                        }
+                        else if (obj_resp.response == 'results') {
+                            await PostDataToUrl(linkGetResults, localStorage.getItem('answers')).then(response => { 
+                                SetResponse(JSON.parse(response))
+                            })
+                        }
+
+                        if (obj_resp.response == "skip") {
+                            current.test++;
+
+                            await getDataFromUrl(getLinkToGetQuestions(current.test + 1)).then(response => {
+                                SetResponse(response)
+                            });
+                            if (obj_resp.response == 'recomendations') {
+                                await PostDataToUrl(linkGetRecomendations, localStorage.getItem('answers')).then(response => {
+                                    SetResponse(response)
+                                })
+                            }
                         }
 
                         setQuestionsArray(object, obj_resp.response);
 
-                        questionsCount = Object.keys(object["data"]).length;
+                        if (object["group-type"] == "introduction" || object["group-type"] == "results" || object["group-type"] == "conclusion") {
+                            questionsCount = 1;
+                        }
+                        else {
+                            questionsCount = Object.keys(object["data"]).length;
+                        }
 
                         if (questionsCount) {
                             step = 100 / questionsCount;
-                            $("title").html($(tests[current.test]).children(".name").children("span").html());
+                            intProgress = 0;
 
-                            if (offset < testsWidth - panelWidth) {
-                                offset = current.test * ($(tests[current.test]).width() + 20);
+                            $("title").html(object["title"]);
+                            $("#name").children("span").html(object["title"]);
+
+                            if (object["group-type"] != "conclusion") {
+                                $("#progress").children("span").html(`${intProgress}%`);
+                                $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
                             }
-                            if (offset > testsWidth - panelWidth) {
-                                offset = testsWidth - panelWidth;
-                            }
-
-                            $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-
-                            $(tests[current.test]).addClass("current");
 
                             current.test++;
                             current.question = 1;
@@ -278,63 +309,44 @@ $(function () {
                 }
             }
 
-            if (isCompleted) {
-                storageData = localStorage.getItem("answers");
-                localStorage.clear();
-                showContent();
-                $("section").append("<h1 id=\"the_end\">Тестирование завершено!</h1><div id=\"the_end_text\"><p>Благодарим Вас за уделённое время</p></div><div id=\"buttons\"></div>");
+            fillForm(object["data"], object["group-type"], current.question);
+            
+            showContent();
+
+            if (current.question != 1) {
+                showBackButton();
+            }
+
+            if (object["group-type"] == "recomendation" || object["group-type"] == "results") {
+                showNextButton();
+            }
+
+            if (object["group-type"] == "conclusion") {
                 $("#buttons").append("<div class=\"third_button reload\" onclick=\"\"><i class=\"icon fi fi-br-rotate-right\"></i><span>Начать сначала</span></div>");
                 $("#buttons").append("<div class=\"forth_button download_results\" onclick=\"\"><span>Скачать рекомендации</span><i class=\"icon fi fi-br-download\"></i></div>");
                 $(".reload, .download_results").animate({ opacity: 1 }, {
                     duration: "fast", easing: "linear", done: function () {
                         $(".reload, .download_results").css({ transition: "300ms" });
                     }, queue: false
-                });
+                });            
             }
-            else {
-                fillForm(object["data"], object["group-type"], current.question);
-
-                if (offset < testsWidth - panelWidth) {
-                    offset = (current.test - 1) * ($(tests[current.test - 1]).width() + 20);
-                }
-                if (offset > testsWidth - panelWidth) {
-                    offset = testsWidth - panelWidth;
-                }
-
-                if ($("#tests_panel").scrollLeft() != offset) {
-                    $("#tests_panel").animate({ scrollLeft: offset }, { duration: "fast", easing: "linear", queue: false });
-                }
-
-                showContent();
-
-                if (current.question != 1) {
-                    showBackButton();
-                }
-
-                if (object["group-type"] == "recomendation") {
-                    showNextButton();
-                }
-            }
-
         }
 
         else if (event.target.className.includes("reload") || $(".reload").has(event.target).length) {
+            localStorage.clear();
             location.reload();
         }
         
-
         else if (event.target.className.includes("download_results") || $(".download_results").has(event.target).length) {
             let link = document.createElement("a");
-            link.setAttribute("href", `/recomendations-xlsx?answers=${storageData}`);
+            link.setAttribute("href", `/recomendations-xlsx?answers=${localStorage.getItem("answers")}`);
             link.setAttribute("download", "");
             link.click();
             return false;
         }
 
-        else {
-            if (($("#answer_options").has($("input[type=\"number\"]")).length || $("#answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val())) {
-                hideNextButton();
-            }
+        else if (($(".answer_options").has($("input[type=\"number\"]")).length || $(".answer_options").has($("input[type=\"text\"]")).length) && (!$("input[type=\"number\"]").val() && (!$("input[type=\"text\"]").val()) && !$(".answer_options").has($(".with_input")).length)) {
+            hideNextButton();
         }
     });
 })
@@ -375,7 +387,7 @@ function hideNextButton() {
 }
 
 function animateNextButton() {
-    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${current.question + 1 > questionsCount ? "Завершить" : "Далее"}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
+    $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${object["group-type"] == "introduction" ? "Начать" : (current.question + 1 > questionsCount ? "Завершить блок" : "Далее")}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
     $(".next").animate({ opacity: 1 }, {
         duration: "fast", easing: "linear", done: function () {
             $(".next").css({ transition: "300ms" });
