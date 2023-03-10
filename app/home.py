@@ -1,11 +1,9 @@
 from flask import Blueprint, render_template, request, jsonify, send_file
 from .models import Question, Answer, Group, Recomendations, Results, Texts
 from . import db
-import json
-import openpyxl
-import io
 from config import Config
 from collections import OrderedDict
+import json, openpyxl, io
 
 home = Blueprint("home", __name__)
 
@@ -15,10 +13,26 @@ def index():
     tests = [group.name for group in Group.query.all()]
     return render_template("index.html", tests=tests)
 
+
 @home.route("/test")
 def test():
-    answers = {"2":{"1":["1"],"2":["23"],"3":["awe"],"4":["2"],"5":["172"],"6":["72"],"7":["80"],"8":["3"],"9":["3"],"10":["3"]},"3":{"1":["1"],"2":["1"],"3":["2"],"4":["1"],"5":["2"]}}
-    return get_attributes_fr(answers)
+    answers = {
+        "2": {
+            "1": ["1"],
+            "2": ["45"],
+            "3": ["asd"],
+            "4": ["2"],
+            "5": ["170"],
+            "6": ["60"],
+            "7": ["94"],
+            "8": ["4"],
+            "9": ["4"],
+            "10": ["3"],
+        },
+        "3": {"1": ["1"], "2": ["1"], "3": ["2"], "4": ["2"], "5": ["2"]},
+    }
+    return jsonify(get_points_on_questions(answers))
+
 
 @home.route("/get-question", methods=["GET", "POST"])
 def get_question_by_id():
@@ -29,15 +43,14 @@ def get_question_by_id():
         if group_id:
             group = Group.query.get(group_id)
 
-            if group.type == "question":
-                response = get_question_data(group_id)
-            if group.type == "text":
-                response = get_text_data(group_id)
-            if group.type == "recomendation":
-                if group.name == "Рекомендации":
-                    response = "recomendations"
-                if group.name == "Оценка риска":
-                    response = "risks"
+            responese_by_type = {
+                "question": get_question_data,
+                "text": get_text_data,
+                "risk": "risks",
+                "recomendation": "recomendations",
+            }
+            response = responese_by_type[group.type]
+            response = response(group.id) if hasattr(response, "__call__") else response
 
         return jsonify(response)
 
@@ -46,7 +59,6 @@ def get_question_by_id():
 def get_recomendations():
     answers = json.loads(request.data)
     response = recomendation_data(answers)
-    save_result_to_db(answers)
     return jsonify(response)
 
 
@@ -54,6 +66,7 @@ def get_recomendations():
 def get_risks():
     answers = json.loads(request.data)
     response = risks_data(answers)
+    save_result_to_db(answers)
     return jsonify(response)
 
 
@@ -83,7 +96,9 @@ def get_question_data(group_id) -> dict:
     for i, q in enumerate(questions, start=1):
         question = dict.fromkeys(("text", "type", "notion", "answers"))
         question["text"] = (
-            " ".join(("".join((str(i), ".")), q.text)) if group.id in (4,5,6) else q.text
+            " ".join(("".join((str(i), ".")), q.text))
+            if group.id in (4, 5, 6)
+            else q.text
         )
         question["notion"] = q.notion
         question["type"] = q.type
@@ -109,10 +124,14 @@ def recomendation_data(answers) -> dict:
     recomendations.append(get_dsmv_recomendations(answers))
 
     response = {
-        key: {"title": "Рекомендовано", "text": value.text}
+        key: {"title": "Персональные рекомендации", "text": value.text}
         for key, value in enumerate(recomendations, start=1)
     }
-    response = {"group-type": "recomendation", "data": response}
+    response = {
+        "group-type": "recomendation",
+        "data": response,
+        "title": Config.RECOMENDATIONS,
+    }
 
     return response
 
@@ -127,16 +146,22 @@ def get_questions_and_answers_by_group(name):
     return questions, group.id
 
 
-def get_debq_recomendations(answers):
-    questions, group_id = get_questions_and_answers_by_group(Config.DSM_V)
-    answers = answers[str(group_id)]
-
+def get_debq_points(questions, answers):
     result = []
     for index, question in enumerate(questions, start=1):
         answer = int(answers[str(index)][0])
         result.append(
             Answer.query.filter_by(question_id=question.id).all()[answer - 1].point
         )
+
+    return result
+
+
+def get_debq_recomendations(answers):
+    questions, group_id = get_questions_and_answers_by_group(Config.DEBQ)
+    answers = answers[str(group_id)]
+
+    result = get_debq_points(questions, answers)
 
     if sum(result[0:10]) / 10 > 2.4:
         return Recomendations.query.filter_by(value="Ограничительный").first()
@@ -181,12 +206,9 @@ def get_dsmv_recomendations(answers):
         return Recomendations.query.filter_by(value="Неизвестное переедание").first()
 
 
-def calculate_imt(answers, attributes) -> float:
-    _, group_id = get_questions_and_answers_by_group(Config.PASSPORT)
-    ans = (answers[str(group_id)])
-
-    weight = int(attributes['weight'])
-    height = int(attributes['height'])
+def calculate_imt(attributes) -> float:
+    weight = int(attributes["weight"])
+    height = int(attributes["height"]) / 100
 
     return weight / (height**2)
 
@@ -206,51 +228,57 @@ def get_persone_attributes(answers):
         if v.text in attributes:
             result[attributes[v.text]] = answers[str(i)][0]
 
-    result['sex'] = Question.query.filter_by(text='Пол').first().answers[int(result['sex'][0])-1].text
-    
+    result["sex"] = (
+        Question.query.filter_by(text="Пол")
+        .first()
+        .answers[int(result["sex"][0]) - 1]
+        .text
+    )
+
     return result
 
 
 def get_attributes_fr(answers):
     attributes = get_persone_attributes(answers)
-    result = {}
-    criteries = OrderedDict({45:0, 55:2, 65:3})
+    result = {}  # keys = (age, imt, waist)
+    criteries = OrderedDict({45: 0, 55: 2, 65: 3})
     for key in criteries:
-        if int(attributes["age"][0]) - key < 0:
-            result['age'] = criteries[key]
-            break 
-        result['age'] = 4
-    
-    criteries = OrderedDict({25:0, 30.001:1})
-    imt = calculate_imt(answers, attributes)
+        if int(attributes["age"]) - key < 0:
+            result["age"] = criteries[key]
+            break
+        result["age"] = 4
+
+    criteries = OrderedDict({25: 0, 30.001: 1})
+    imt = calculate_imt(attributes)
     for key in criteries:
         if imt - key < 0:
-            result['imt'] = criteries[key]
+            result["imt"] = criteries[key]
             break
-        result['imt'] = 3
-    
-    criteries = OrderedDict({94:0, 102.001:1}) if attributes['sex'] == 'Мужской' else OrderedDict({80:0, 88.001:1})
+        result["imt"] = 3
+
+    criteries = (
+        OrderedDict({94: 0, 102.001: 3})
+        if attributes["sex"] == "Мужской"
+        else OrderedDict({80: 0, 88.001: 3})
+    )
     for key in criteries:
-        if int(attributes['waist'][0]) - key < 0:
-            result['waist'] = criteries[key]
+        if int(attributes["waist"]) - key < 0:
+            result["waist"] = criteries[key]
             break
-        result['waist'] = 3
-    
+        result["waist"] = 4
+
     return result
 
 
 def get_questions_recomendations(answers):
-    questions = get_questions_and_answers_by_group(Config.DEBQ)[0]
-    if answers["1"]["1"] == ["1"]:
-        sex = "male"
-    else:
-        sex = "female"
-
+    questions, group_id = get_questions_and_answers_by_group(Config.QUESTIONS)
+    attributes = get_persone_attributes(answers)
+    imt = calculate_imt(attributes)
+    sex = attributes["age"]
+    waist = int(attributes["waist"])
     recomendations = []
-    imt = calculate_imt(answers)
-    waist = get_persone_attributes(answers)['waist']
 
-    if sex == "male":
+    if sex == "Мужской":
         if imt < 25 and waist < 94:
             recomendations.append(
                 Recomendations.query.filter_by(value="Нормальный вес").first()
@@ -264,7 +292,7 @@ def get_questions_recomendations(answers):
                 Recomendations.query.filter_by(value="Ожирение").first()
             )
 
-    elif sex == "female":
+    elif sex == "Женский":
         if imt < 25 and waist < 80:
             recomendations.append(
                 Recomendations.query.filter_by(value="Нормальный вес").first()
@@ -277,7 +305,8 @@ def get_questions_recomendations(answers):
             recomendations.append(
                 Recomendations.query.filter_by(value="Ожирение").first()
             )
-    answers = answers["2"]
+
+    answers = answers[str(group_id)]
     for index, question in enumerate(questions, start=1):
         value = int(answers[str(index)][0])
 
@@ -316,15 +345,14 @@ def get_points_on_questions(answers) -> int:
 def risks_data(answers) -> dict:
     points = get_points_on_questions(answers)
 
-    if points < 7:
-        risk_level = "Низкий"
-    elif 7 <= points <= 11:
-        risk_level = "Слегка повышен"
-    elif 12 <= points <= 14:
-        risk_level = "Умеренный"
-    elif 15 <= points <= 20:
-        risk_level = "Высокий"
-    else:
+    criteries = OrderedDict(
+        {7: "Низкий", 12: "Слегка повышен", 15: "Умеренный", 21: "Высокий"}
+    )
+    risk_level = ""
+    for key in criteries:
+        if points < key:
+            risk_level = criteries[key]
+            break
         risk_level = "Очень высокий"
 
     risk = Recomendations.query.filter_by(value=risk_level).first()
@@ -344,14 +372,115 @@ def risks_data(answers) -> dict:
                 },
             }
         },
+        "title": Config.RISKS,
     }
 
     return response
 
 
 def save_result_to_db(answers):
-    result = Results(data=json.dumps(answers))
-    db.session.add(result)
+    result = {}
+    attributes_fr = get_attributes_fr(answers)
+    attributes = get_persone_attributes(answers)
+    imt = calculate_imt(attributes)
+    i = 1
+    for test in answers:
+        questions = Group.query.get(int(test)).questions
+        test_answers = answers[test]
+        print(test_answers)
+        for q_num in test_answers:
+            question = questions[int(q_num)-1]
+            if int(test) == 4:
+                result[i] = question.answers[int(test_answers[q_num][0])-1].point
+            elif int(test) == 5:
+                if question.type == "checkbox":
+                    for a in test_answers[q_num]:
+                        if "Да" in question.answers[int(a) - 1].text:
+                            result[i] = 1
+                            break
+                        elif "Нет" in question.answers[int(a) - 1].text:
+                            result[i] = 0
+                            break
+                else:
+                    if "Да" in question.answers[int(test_answers[q_num][0]) - 1].text:
+                        result[i] = 1
+                    elif (
+                        "Нет" in question.answers[int(test_answers[q_num][0]) - 1].text
+                    ):
+                        result[i] = 0
+
+            elif int(test) == 6:
+                if question.type == "checkbox":
+                    result[i] = len(test_answers[q_num])
+                else:
+                    if (
+                        question.answers[int(test_answers[q_num][0]) - 1].id
+                        == question.correct_answer_id
+                    ):
+                        result[i] = 1
+                    else:
+                        result[i] = 0
+
+            else:
+                result[i] = test_answers[q_num][0]
+
+            i += 1
+            if int(test) == 2:
+                if question.text == "Возраст":
+                    result[i] = attributes_fr["age"]
+                    result[i + 1] = imt
+                    result[i + 2] = attributes_fr["imt"]
+                    i += 3
+                elif question.text == "Окружность талии на уровне пупка, см":
+                    result[i] = attributes_fr["waist"]
+                    result[i + 1] = 1 if attributes_fr["waist"] else 0
+                    i += 2
+
+            elif int(test) == 3:
+                result[i] = question.answers[int(result[i - 1]) - 1].point
+                i += 1
+
+        if int(test) == 3:
+            result[i] = get_points_on_questions(answers)
+
+            criteries = OrderedDict({7: 0, 12: 1, 15: 2, 21: 3})
+            risk_level = ""
+            for key in criteries:
+                if result[i] < key:
+                    risk_level = criteries[key]
+                    break
+                risk_level = 4
+
+            result[i + 1] = risk_level
+            criteries = {0: 1, 1: 4, 2: 17, 3: 33, 4: 50}
+            result[i + 2] = criteries[result[i + 1]]
+            i += 3
+
+        elif int(test) == 4:
+            points = get_debq_points(questions, test_answers)
+            result[i] = sum(points)
+            if sum(points[0:10]) / 10 > 2.4:
+                result[i + 1] = 0
+            elif sum(points[10:23]) / 13 > 1.8:
+                result[i + 1] = 1
+            elif sum(points[23:33]) / 10 > 2.7:
+                result[i + 1] = 2
+            else:
+                result[i + 1] = 3
+            i += 2
+
+        elif int(test) == 5:
+            dsm_rec = get_dsmv_recomendations(answers)
+            criteries = {
+                "Нервная булимия": 1,
+                "Компульсивное переедание": 2,
+                "Неизвестное переедание": 0,
+            }
+            result[i] = criteries[dsm_rec.value]
+            i += 1
+
+    user_result = Results(data=json.dumps(result))
+    db.session.add(user_result)
     db.session.commit()
 
 
@@ -379,49 +508,71 @@ def get_recomendations_xlsx():
 
 
 def save_results_to_excel():
-    results = Results.query.all()
     book = openpyxl.Workbook()
     sheet = book.active
+    results = Results.query.all()
 
-    titles = get_questions_titles()
+    titles = generate_titles_excel()
 
     for i, v in enumerate(titles, start=1):
         sheet.cell(row=1, column=i).value = v
 
-    results = Results.query.all()
-
     for row, result in enumerate(results, start=2):
         data = json.loads(result.data)
-        col = 1
-        for group in data:
-            for question in data[group]:
-                questions_temp = group.questions[int(question) - 1]
-                answers = questions_temp.answers
-                if questions_temp.type == "radio":
-                    if data[group][question][0] in [
-                        str(i) for i in range(1, len(answers) + 1)
-                    ]:
-                        answer_title = answers[int(data[group][question][0]) - 1].text
-                    else:
-                        answer_title = data[group][question][0]
-                    sheet.cell(row=row, column=col).value = answer_title
-                elif questions_temp.type == "textbox":
-                    sheet.cell(row=row, column=col).value = data[group][question][0]
-                elif questions_temp.type == "checkbox":
-                    answer_title = [
-                        answers[int(i) - 1].text for i in data[group][question]
-                    ]
-                    sheet.cell(row=row, column=col).value = "\n".join(answer_title)
-
-                col += 1
+        print(data)
+        for key in data:
+            sheet.cell(row=row, column=int(key)).value = data[key]
 
     return book
 
 
-def get_questions_titles():
-    questions = Question.query.order_by(Question.group_id).all()
+def generate_titles_excel():
+    groups = Group.query.filter_by(type="question").all()
+    titles = []
+    titles += get_passport_titles_excel(groups[0])
+    titles += get_questions_titles_excel(groups[1])
+    titles += get_titles_excel(groups[2], "DEBQ", ["Сумма DEBQ", "Тип ПП (по DEBQ)"])
+    titles += get_titles_excel(groups[3], "DSM", ["Тип ПП (по DSM)"])
+    titles += get_titles_excel(groups[4], "Инф")
 
-    return [question.text for question in questions]
+    return titles
+
+
+def get_passport_titles_excel(group):
+    titles = []
+    questions = group.questions
+    for question in questions:
+        titles.append(question.text)
+        if question.text == "Возраст":
+            titles.append(" ".join((question.text, "(FR)")))
+            titles.append("ИМТ")
+            titles.append("ИМТ (фактор риска)")
+        elif question.text == "Окружность талии на уровне пупка, см":
+            titles.append(" ".join((question.text, "(FR)")))
+            titles.append(" ".join((question.text, "(фактор риска)")))
+
+    return titles
+
+
+def get_questions_titles_excel(group):
+    titles = []
+    questions = group.questions
+    for question in questions:
+        titles.append(question.text)
+        titles.append(" ".join((question.text, "(FR)")))
+    titles += ["Суммарный балл по FR", "Уровень риска СД", "Вероятность СД, %"]
+
+    return titles
+
+
+def get_titles_excel(group, title, optional=[]):
+    titles = []
+    questions = group.questions
+    for i, _ in enumerate(questions, start=1):
+        titles.append("-".join((title, str(i))))
+    titles += optional
+
+    return titles
 
 
 def get_recomendations_file(answers):
