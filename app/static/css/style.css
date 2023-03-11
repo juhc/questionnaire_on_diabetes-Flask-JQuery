@@ -19,7 +19,7 @@
     }
 
     #test span {
-        font-size: 16px; /* 14 */
+        font-size: 16px;
     }
 
     #content {
@@ -40,7 +40,7 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 16px; /* 14 */
+        font-size: 16px;
     }
 
     .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
@@ -58,7 +58,7 @@
     }
 
     #test span {
-        font-size: 16px; /* 14 */
+        font-size: 16px;
     }
 
     #content {
@@ -79,7 +79,7 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 16px; /* 14 */
+        font-size: 16px;
     }
 
     .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
@@ -97,7 +97,7 @@
     }
 
     #test span {
-        font-size: 14px; /* 12 */
+        font-size: 14px;
     }
 
     #content {
@@ -118,7 +118,7 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 16px; /* 14 */
+        font-size: 16px;
     }
     
     .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
@@ -136,7 +136,7 @@
     }
 
     #test span {
-        font-size: 14px; /* 12 */
+        font-size: 15px;
     }
 
     #content {
@@ -157,22 +157,21 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 14px; /* 12 */
+        font-size: 15px;
     }
 
     .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .answer_options label::before {
-        font-size: 12px;
+        font-size: 13px;
     }
 }
 
 html {
     min-height: 100%;
     height: max-content;
-    /* background-color: #FFDDAA; */
     background-image: url("../images/background.jpg");
     background-repeat: no-repeat;
     background-size: cover;
