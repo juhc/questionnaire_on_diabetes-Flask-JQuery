@@ -19,7 +19,7 @@
     }
 
     #test span {
-        font-size: 14px;
+        font-size: 16px; /* 14 */
     }
 
     #content {
@@ -40,10 +40,10 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 14px;
+        font-size: 16px; /* 14 */
     }
 
-    #term, .answer_options label, .answer_options input, #buttons div, .recomendation_text, #text {
+    .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
         font-size: 16px;
     }
 
@@ -58,7 +58,7 @@
     }
 
     #test span {
-        font-size: 14px;
+        font-size: 16px; /* 14 */
     }
 
     #content {
@@ -79,10 +79,10 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 14px;
+        font-size: 16px; /* 14 */
     }
 
-    #term, .answer_options label, .answer_options input, #buttons div, .recomendation_text, #text {
+    .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
         font-size: 16px;
     }
 
@@ -97,7 +97,7 @@
     }
 
     #test span {
-        font-size: 12px;
+        font-size: 14px; /* 12 */
     }
 
     #content {
@@ -118,10 +118,10 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 14px;
+        font-size: 16px; /* 14 */
     }
-
-    #term, .answer_options label, .answer_options input, #buttons div, .recomendation_text, #text {
+    
+    .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
         font-size: 16px;
     }
 
@@ -136,7 +136,7 @@
     }
 
     #test span {
-        font-size: 12px;
+        font-size: 14px; /* 12 */
     }
 
     #content {
@@ -157,10 +157,10 @@
     #content fieldset {
         padding: 20px;
         border-radius: 20px;
-        font-size: 12px;
+        font-size: 14px; /* 12 */
     }
 
-    #term, .answer_options label, .answer_options input, #buttons div, .recomendation_text, #text {
+    .answer_options, .answer_options input, #buttons div, .recomendation_text, #text {
         font-size: 14px;
     }
 
@@ -293,7 +293,7 @@ form {
     box-sizing: border-box;
 }
 
-#content > * {
+#test > *, #content > * {
     opacity: 0;
 }
 
@@ -325,12 +325,9 @@ form {
 
 #content fieldset {
     width: 100%;
-    border: 2px dashed #CC0000;
+    border: 2px dashed #990000;
     box-sizing: border-box;
-}
-
-#term {
-    font-weight: bold;
+    background-color: #99000011;
 }
 
 .answer_options label {
@@ -472,6 +469,18 @@ input[type="checkbox"]:checked+label::before {
 
 .green {
     color: #11BB00;
+}
+
+.yellow {
+    color: #99BB00;
+}
+
+.orange {
+    color: #CC8800;
+}
+
+.dark_orange {
+    color: #CC4400
 }
 
 .red {

@@ -1,4 +1,5 @@
 from . import db
+from datetime import datetime
 
 
 class Texts(db.Model):
@@ -57,3 +58,4 @@ class Group(db.Model):
 class Results(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.String, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.now())

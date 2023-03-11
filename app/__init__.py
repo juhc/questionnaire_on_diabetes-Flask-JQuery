@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 import os
@@ -25,6 +25,10 @@ def create_app():
     from .home import home
 
     app.register_blueprint(home, url_prefix="/")
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return redirect(url_for('home.index'))
 
     return app
 

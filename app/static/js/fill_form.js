@@ -89,6 +89,22 @@ function fillForm(data, type, question) {
             recomendationsCount = Object.keys(recomendationData).length;
 
             $("section").append(`<h1 class=\"recomendation\" id=\"recomendation${1}\">${recomendationData[1].title}</h1><div class=\"recomendation_text\" id=\"recomendation_text${1}\"><p>${recomendationData[1].text}</p></div>`);
+            
+            if (recomendationData[1].text == "Низкий") {
+                $("#recomendation_text1").addClass("green");
+            }
+            else if (recomendationData[1].text == "Слегка повышен") {
+                $("#recomendation_text1").addClass("yellow");
+            }
+            else if (recomendationData[1].text == "Умеренный") {
+                $("#recomendation_text1").addClass("orange");
+            }
+            else if (recomendationData[1].text == "Высокий") {
+                $("#recomendation_text1").addClass("dark_orange");
+            }
+            else if (recomendationData[1].text == "Очень высокий") {
+                $("#recomendation_text1").addClass("red");
+            }
 
             for (let i = 1; i < recomendationsCount; i++) {
                 $("section").append(`<hr><h1 class=\"recomendation\" id=\"recomendation${i + 1}\">${recomendationData[i + 1].title}</h1><div class=\"recomendation_text\" id=\"recomendation_text${i + 1}\"><p>${recomendationData[i + 1].text}</p></div>`);
