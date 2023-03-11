@@ -4,6 +4,7 @@ from . import db
 from config import Config
 from collections import OrderedDict
 import json, openpyxl, io, fpdf
+from pathlib import Path
 
 home = Blueprint("home", __name__)
 
@@ -12,19 +13,6 @@ home = Blueprint("home", __name__)
 def index():
     tests = [group.name for group in Group.query.all()]
     return render_template("index.html", tests=tests)
-
-
-@home.route("/test")
-def test():
-    pdf = get_recomendations_pdf({"1": "1", "2": "1", "3": 0, "4": 10000.0, "5": 3, "6": "1", "7": "gjrtugjro", "8": "1", "9": "1", "10": "1", "11": 0, "12": 0, "13": "6", "14": "6", "15": "4", "16": "1", "17": 0, "18": "1", "19": 0, "20": "1", "21": 0, "22": "1", "23": 0, "24": "1", "25": 0, "26": 3, "27": 0, "28": 1, "29": 1, "30": 1, "31": 1, "32": 1, "33": 1, "34": 1, "35": 1, "36": 1, "37": 1, "38": 1, "39": 1, "40": 1, "41": 1, "42": 1, "43": 1, "44": 1, "45": 1, "46": 1, "47": 1, "48": 1, "49": 1, "50": 1, "51": 1, "52": 1, "53": 1, "54": 1, "55": 1, "56": 1, "57": 1, "58": 1, "59": 5, "60": 1, "61": 1, "62": 37, "63": 3, "64": 1, "65": 1, "66": 1, "67": 1, "68": 0, "69": 0, "70": 0, "71": 0, "72": 0, "73": 0, "74": 0, "75": 0, "76": 0, "77": 0, "78": 1, "79": 5, "80": 0, "81": 1, "82": 0})
-    buffer = io.BytesIO()
-    pdf.output(buffer)
-    buffer.seek(0)
-    return send_file(
-        buffer,
-        download_name="Результаты.pdf",
-        as_attachment=True,
-    )
 
 
 @home.route("/get-question", methods=["GET", "POST"])
@@ -66,7 +54,7 @@ def get_info_results():
                 for a in answers[answer]
             ],
             "correct": correct_answers[int(answer)],
-            "notion": questions[int(answer) - 1].notion
+            "notion": questions[int(answer) - 1].notion,
         }
     response = {
         "group-type": "results",
@@ -147,13 +135,34 @@ def get_question_data(group_id) -> dict:
 def recomendation_data(answers) -> dict:
     response = {}
     recomendations = get_questions_recomendations(answers)
-    recomendations.append(get_debq_recomendations(answers))
-    recomendations.append(get_dsmv_recomendations(answers))
+    debq = get_debq_recomendations(answers)
+    dsmv = get_dsmv_recomendations(answers)
 
     response = {
         key: {"title": "Персональные рекомендации", "text": value.text}
         for key, value in enumerate(recomendations, start=1)
     }
+
+    if debq.value != "Норма" or dsmv.value != "Неизвестное переедание":
+        response[len(response) + 1] = {
+            "title": "Персональные рекомендации",
+            "text": "У вас выявлена предрасположенность к развитию расстройства пищевого поведения. Рекомендуем обратиться к специалисту, занимающемуся диагностикой и коррекцией расстройств пищевого поведения.",
+        }
+        if debq.value != "Норма":
+            response[len(response) + 1] = {
+            "title": "Персональные рекомендации",
+            "text": debq.text,
+        }
+    else:
+        response[len(response) + 1] = {
+            "title": "Персональные рекомендации",
+            "text": debq.text,
+        }
+        response[len(response) + 1] = {
+            "title": "Персональные рекомендации",
+            "text": dsmv.text,
+        }
+
     response = {
         "group-type": "recomendation",
         "data": response,
@@ -524,13 +533,13 @@ def get_results():
 
 
 @home.route("/recomendations-xlsx")
-def get_recomendations_xlsx():
+def get_recomendations_pdf():
     buffer = io.BytesIO()
     answers = json.loads(request.args.get("answers"))
-    book = get_recomendations_file(answers)
-    book.save(buffer)
+    pdf = get_recomendations_file(answers)
+    pdf.output(buffer)
     buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name="Рекомендации.xlsx")
+    return send_file(buffer, as_attachment=True, download_name="Рекомендации.pdf")
 
 
 def save_results_to_excel():
@@ -551,21 +560,47 @@ def save_results_to_excel():
     return book
 
 
-def get_recomendations_pdf(answers):
+def get_recomendations_file(answers):
+    group_id = Group.query.filter_by(name=Config.PASSPORT).first().id
+    question = Question.query.filter_by(
+        text="Был ли у Вас установлен диагноз «сахарный диабет» ранее?"
+    ).first()
+    check_sd = question.answers[int(answers[str(group_id)][str(question.id)][0]) - 1]
+
+    recomendations = recomendation_data(answers)["data"]
+    risks = risks_data(answers)["data"]["1"]
+
     pdf = fpdf.FPDF()
     pdf.add_page()
     pdf.set_xy(0, 0)
-    pdf.set_font('arial', 'B', 13.0)
-    pdf.cell(ln=1, h=5.0, align='C', w=0, txt="Hello", border=0)
-    pdf.cell(ln=1, h=5.0, align='C', w=0, txt="Hello", border=0)
-    a = 'askdflsdjf'
-    pdf.cell(ln=1, h=5.0, align='C', w=0, txt=a, border=0)
+    fonts_path = Path(Path.cwd() / "app" / "static" / "fonts")
+    pdf.add_font(family="Roboto", fname=Path(fonts_path / "Roboto-Light.ttf"), uni=True)
+    pdf.add_font(
+        family="Roboto", style="B", fname=Path(fonts_path / "Roboto-Bold.ttf"), uni=True
+    )
+    pdf.set_font("Roboto", "B", 14.0)
 
-    #recomendations = recomendation_data(answers)["data"]
-    # for i, v in enumerate(recomendations, start=1):
-    #     pdf.cell(ln=0, h=5.0, align='C', w=0, txt=v, border=0)
+    pdf.cell(200, 5, ln=1)
+    pdf.cell(200, 10, align="C", ln=1, txt="Персональные рекомендации")
+    pdf.set_font("Roboto", "", 12.0)
+    recomendations = recomendation_data(answers)["data"]
+    pdf.cell(200, 5, ln=1)
+    for v in recomendations:
+        pdf.multi_cell(190, 7, ln=1, align="J", txt=recomendations[v]["text"], border=1)
+
+    if not "Да" in check_sd.text:
+        pdf.set_font("Roboto", "B", 14.0)
+        pdf.cell(200, 10, ln=1)
+        pdf.cell(200, 10, align="C", ln=1, txt="Риск развития сахарного диабета")
+        for key in risks:
+            pdf.cell(200, 5, ln=1)
+            pdf.set_font("Roboto", "B", 12.0)
+            pdf.multi_cell(180, 7, ln=1, align="L", txt=risks[key]["title"])
+            pdf.set_font("Roboto", "", 12.0)
+            pdf.multi_cell(180, 7, ln=1, align="J", txt=risks[key]["text"])
 
     return pdf
+
 
 def generate_titles_excel():
     groups = Group.query.filter_by(type="question").all()
@@ -614,27 +649,6 @@ def get_titles_excel(group, title, optional=[]):
     titles += optional
 
     return titles
-
-
-def get_recomendations_file(answers):
-    group_id = Group.query.filter_by(name=Config.PASSPORT).first().id
-    question = Question.query.filter_by(
-        text="Был ли у Вас установлен диагноз «сахарный диабет» ранее?"
-    ).first()
-    check_sd = question.answers[int(answers[str(group_id)][str(question.id)][0]) - 1]
-    
-    recomendations = recomendation_data(answers)["data"]
-    book = openpyxl.Workbook()
-    sheet = book.active
-    for i, v in enumerate(recomendations, start=1):
-        sheet.cell(row=i, column=1).value = recomendations[v]["text"]
-
-    if not "Да" in check_sd.text:
-        risks = risks_data(answers)["data"]["1"]
-        for row, key in enumerate(risks, start=len(recomendations) + 2):
-            sheet.cell(row=row, column=1).value = risks[key]["title"]
-            sheet.cell(row=row, column=2).value = risks[key]["text"]
-    return book 
 
 
 def get_text_data(group_id):

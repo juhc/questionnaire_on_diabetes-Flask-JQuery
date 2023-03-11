@@ -5,6 +5,7 @@ let step = 0;
 let questionsCount = 0;
 let obj_resp = { 'response': null }
 let testsCount = 0;
+let isHidden = true;
 
 $(async function () {
     await getDataFromUrl(linkGetTestCount).then(response => {
@@ -72,8 +73,11 @@ $(async function () {
                 $("#progress").children("span").html(`${intProgress}%`);
                 $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
             }
+            else {
+                $("#progress, #progressbar").css({ display: "none" });
+            }
 
-            showContent();
+            showForm();
 
             if (current.question != 1) {
                 showBackButton();
@@ -114,7 +118,10 @@ $(function () {
     });
 
     $(window).keypress(function (event) {
-        if (($(".answer_options").has($("input[type=\"number\"]")).length || $(".answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
+        if (!$("input:checked").length && ($(".answer_options").has($("input[type=\"number\"]")).length || $(".answer_options").has($("input[type=\"text\"]")).length) && !$("input[type=\"number\"]").val() && !$("input[type=\"text\"]").val() && event.key == "Enter") {
+            return false;
+        }
+        else if ($("input:checked").length && $("input:checked").hasClass("with_input") && !$("label.with_input > input").val() && event.key == "Enter") {
             return false;
         }
         if ($("#buttons").children(".second_button").hasClass("next") && event.key == "Enter") {
@@ -177,7 +184,7 @@ $(function () {
                 hideNextButton();
             }
 
-            hideContent();
+            hideForm();
 
             if (!isCompleted) {
                 let backButtonClicked = (event.target.className.includes("back") || $(".back").has(event.target).length)
@@ -238,6 +245,9 @@ $(function () {
                     $("#progress").children("span").html(`${intProgress}%`);
                     $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
                 }
+                else {
+                    $("#progress, #progressbar").css({ display: "none" });
+                }
 
                 if (current.question + 1 > questionsCount) {
                     if (current.test + 1 > testsCount) {
@@ -296,6 +306,9 @@ $(function () {
                                 $("#progress").children("span").html(`${intProgress}%`);
                                 $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
                             }
+                            else {
+                                $("#progress, #progressbar").css({ display: "none" });
+                            }
 
                             current.test++;
                             current.question = 1;
@@ -311,7 +324,7 @@ $(function () {
 
             fillForm(object["data"], object["group-type"], current.question);
             
-            showContent();
+            showForm();
 
             if (current.question != 1) {
                 showBackButton();
@@ -380,8 +393,11 @@ function hideNextButton() {
     $(".second_button").animate({ opacity: 0 }, {
         duration: "fast", easing: "linear", start: function () {
             $(".second_button").css({ transition: "none" });
+            isHidden = true;
         }, done: function () {
-            $("#buttons").children(".second_button").remove();
+            if (isHidden) {
+                $("#buttons").children(".second_button").remove();
+            }
         }, queue: false
     });
 }
@@ -389,7 +405,9 @@ function hideNextButton() {
 function animateNextButton() {
     $("#buttons").append(`<div class=\"second_button next\" onclick=\"\"><span>${object["group-type"] == "introduction" ? "Начать" : (current.question + 1 > questionsCount ? "Завершить блок" : "Далее")}</span><i class=\"icon fi fi-br-arrow-small-right\"></i></div>`);
     $(".next").animate({ opacity: 1 }, {
-        duration: "fast", easing: "linear", done: function () {
+        duration: "fast", easing: "linear", start: function() {
+            isHidden = false;
+        }, done: function () {
             $(".next").css({ transition: "300ms" });
         }, queue: false
     });
@@ -404,12 +422,12 @@ function showBackButton() {
     });
 }
 
-function showContent() {
-    $("#content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
+function showForm() {
+    $("#test, #content").children().animate({ opacity: 1 }, { duration: "fast", easing: "linear", queue: false });
 }
 
-function hideContent() {
-    $("#content").children().animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
+function hideForm() {
+    $("#test, #content").children().animate({ opacity: 0 }, { duration: "fast", easing: "linear", queue: false });
 }
 
 function check(event) {
