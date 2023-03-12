@@ -310,10 +310,10 @@ def get_questions_recomendations(answers):
     questions, group_id = get_questions_and_answers_by_group(Config.QUESTIONS)
     attributes = get_persone_attributes(answers)
     imt = calculate_imt(attributes)
-    sex = attributes["age"]
+    sex = attributes["sex"]
     waist = int(attributes["waist"])
     recomendations = []
-
+    
     if sex == "Мужской":
         if imt < 25 and waist < 94:
             recomendations.append(
@@ -327,7 +327,7 @@ def get_questions_recomendations(answers):
             recomendations.append(
                 Recomendations.query.filter_by(value="Ожирение").first()
             )
-
+    
     elif sex == "Женский":
         if imt < 25 and waist < 80:
             recomendations.append(
