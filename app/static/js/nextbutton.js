@@ -69,12 +69,9 @@ $(async function () {
             $("title").html(object["title"]);
             $("#name").children("span").html(object["title"]);
             
-            if (object["group-type"] != "conclusion") {
+            if ($("#test").has("#progress").length) {
                 $("#progress").children("span").html(`${intProgress}%`);
                 $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
-            }
-            else {
-                $("#progress, #progressbar").css({ display: "none" });
             }
 
             showForm();
@@ -241,12 +238,9 @@ $(function () {
                 let progress = step * (current.question);
                 let intProgress = Math.round(progress);
 
-                if (object["group-type"] != "conclusion") {
+                if ($("#test").has("#progress").length) {
                     $("#progress").children("span").html(`${intProgress}%`);
                     $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
-                }
-                else {
-                    $("#progress, #progressbar").css({ display: "none" });
                 }
 
                 if (current.question + 1 > questionsCount) {
@@ -302,12 +296,9 @@ $(function () {
                             $("title").html(object["title"]);
                             $("#name").children("span").html(object["title"]);
 
-                            if (object["group-type"] != "conclusion") {
+                            if ($("#test").has("#progress").length) {
                                 $("#progress").children("span").html(`${intProgress}%`);
                                 $("#progressbar").animate({ width: `${intProgress}%` }, { duration: "fast", easing: "linear", queue: false });
-                            }
-                            else {
-                                $("#progress, #progressbar").css({ display: "none" });
                             }
 
                             current.test++;

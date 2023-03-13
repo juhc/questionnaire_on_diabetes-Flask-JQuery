@@ -6,6 +6,14 @@ const linkGetResults = '/get-results';
 function fillForm(data, type, question) {
     $("section").children().remove();
 
+    if (type != "introduction" && type != "conclusion" && !$("#test").has("#progress").length) {
+        $("#test").append("<div id=\"progress\"><span>0%</span></div><div id=\"progressbar\"></div>")
+    }
+    else if ((type == "introduction" || type == "conclusion") && $("#test").has("#progress").length) {
+        $("#test").children("#progress").remove();
+        $("#test").children("#progressbar").remove();
+    }
+
     if (type == "introduction" || type == "conclusion") {
         $("section").append(`<div id=\"text\">${data}</div><div id=\"buttons\"></div>`);   
     }
