@@ -344,7 +344,6 @@ form {
 
 .answer_options input:not(:checked)+label::before {
     background-color: transparent;
-    content: "";
     color: transparent;
 }
 
@@ -357,19 +356,15 @@ form {
 }
 
 input[type="radio"]:checked+label::before {
-    content: "\f2c3";
-    font-family: "uicons-solid-straight";
+    background-image: url("../images/circle-small.svg");
 }
 
 input[type="checkbox"]:checked+label::before {
-    content: "\f2ad";
-    font-family: "uicons-bold-rounded";
+    background-image: url("../images/check.svg");
 }
 
 .answer_options input:checked+label::before {
     background-color: #99FF00;
-    color: #330000;
-    text-align: center;
 }
 
 .answer_options input:checked+label:hover::before {
@@ -381,12 +376,15 @@ input[type="checkbox"]:checked+label::before {
 }
 
 .answer_options label::before {
-    transform: translate(0, 0);
     min-width: 1em;
     min-height: 1em;
     line-height: 1em;
     padding: 2px;
     border: 1px solid #330000;
+    content: "";
+    background-size: 1em 1em;
+    background-repeat: no-repeat;
+    background-position: center center;
     transition: 300ms;
 }
 
@@ -413,7 +411,6 @@ input[type="checkbox"]:checked+label::before {
 .answer_options input[type="text"] {
     max-width: 300px;
 }
-
 
 .answer_options input[type="number"] {
     max-width: 100px;
