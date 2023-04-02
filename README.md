@@ -5,7 +5,7 @@
   <li>git clone https://github.com/juhc/questionnaire_on_diabetes.git</li>
   <li>cd questionnaire_on_diabetes
   <li>python -m venv venv</li>
-  <li>.\venv\Scripts\activate (для Windwos); source ./venv/bin/activate (Linux)</li>
+  <li>.\venv\Scripts\activate (для Windows); source ./venv/bin/activate (Linux)</li>
   <li>pip install -r requirements.txt</li>
   <li>flask --app run.py run</li>
 </ol>
