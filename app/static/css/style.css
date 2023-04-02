@@ -1,5 +1,5 @@
-@import url('https://cdn-uicons.flaticon.com/uicons-bold-rounded/css/uicons-bold-rounded.css');
-@import url('https://cdn-uicons.flaticon.com/uicons-solid-straight/css/uicons-solid-straight.css');
+/*@import url('https://cdn-uicons.flaticon.com/uicons-bold-rounded/css/uicons-bold-rounded.css');
+@import url('https://cdn-uicons.flaticon.com/uicons-solid-straight/css/uicons-solid-straight.css');*/
 
 @font-face {
     font-family: "Nunito";
@@ -442,7 +442,7 @@ input[type="checkbox"]:checked+label::before {
     background-color: #FFEECC;
     padding: 10px;
     box-sizing: border-box;
-    column-gap: 5px;
+    column-gap: 10px;
     cursor: pointer;
 }
 
@@ -456,7 +456,6 @@ input[type="checkbox"]:checked+label::before {
 
 .icon {
     display: block;
-    line-height: 0;
 }
 
 .answer_options label.error::before {
@@ -486,4 +485,28 @@ input[type="checkbox"]:checked+label::before {
 hr {
     width: 90%;
     color: #FFDDAA;
+}
+
+.fi {
+    min-width: 1em;
+    min-height: 1em;
+    background-repeat: no-repeat;
+    background-size: 1em 1em;
+    background-position: center center;
+}
+
+.fi-br-rotate-right {
+    background-image: url("../images/rotate-right.svg");
+}
+
+.fi-br-download {
+    background-image: url("../images/download.svg");
+}
+
+.fi-br-arrow-small-right {
+    background-image: url("../images/arrow-small-right.svg");
+}
+
+.fi-br-arrow-small-left {
+    background-image: url("../images/arrow-small-left.svg");
 }
