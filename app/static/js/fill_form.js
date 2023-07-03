@@ -64,7 +64,7 @@ function fillForm(data, type, question) {
                 if (questionData.answers[i].text != null) {
                     $(`.group${i + 1}`).append(`<label for=\"${questionData.answers[i].type}${i + 1}\">${questionData.answers[i].text}</label>`)
                 }
-                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\" ${questionData.answers[i].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`);
+                $(`.group${i + 1}`).append(`<input id=\"${questionData.answers[i].type}${i + 1}\" type=\"${questionData.answers[i].type}\" name=\"group\" ${questionData.answers[i].type == "text" ? "minlength=\"0\" maxlength=\"50\"" : "min=\"1\" max=\"999\""}>`);
             }
         }
         else {
@@ -73,7 +73,7 @@ function fillForm(data, type, question) {
                 if (questionData.answers[i].type != null) {
                     $(`.group${i + 1}`).append(`<input id=\"${questionData.type}${i + 1}\" class=\"with_input\" type=\"${questionData.type}\" name=\"group\">`);
                     $(`.group${i + 1}`).append(`<label class=\"with_input\" for=\"${questionData.type}${i + 1}\">${questionData.answers[i].text}</label>`);
-                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[i].type}\" name=\"group\" ${object["data"][current.question].answers[i].type == "text" ? "minlength=\"0\" maxlength=\"20\"" : "min=\"1\" max=\"999\""}>`));
+                    $("label.with_input").append($(`<input type=\"${object["data"][current.question].answers[i].type}\" name=\"group\" ${object["data"][current.question].answers[i].type == "text" ? "minlength=\"0\" maxlength=\"50\"" : "min=\"1\" max=\"999\""}>`));
                 }
                 else {
                     $(`.group${i + 1}`).append(`<input id=\"${questionData.type}${i + 1}\" type=\"${questionData.type}\" name=\"group\">`);
